@@ -1,8 +1,11 @@
+export type RoleSlug = 'admin' | 'guru' | 'siswa' | 'orang-tua';
+
 export type User = {
     id: number;
     name: string;
     email: string;
     avatar?: string;
+    role: RoleSlug | null;
     email_verified_at: string | null;
     created_at: string;
     updated_at: string;

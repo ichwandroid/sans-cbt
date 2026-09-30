@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\User;
+use App\Role;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -44,7 +45,49 @@ class UserFactory extends Factory
     }
 
     /**
+     * Indicate that the user has the given role.
+     */
+    public function withRole(Role $role): static
+    {
+        return $this->state(fn (): array => [
+            'role' => $role,
+        ]);
+    }
+
+    /**
+     * Indicate that the user is an administrator.
+     */
+    public function admin(): static
+    {
+        return $this->withRole(Role::Admin);
+    }
+
+    /**
+     * Indicate that the user is a teacher.
+     */
+    public function guru(): static
+    {
+        return $this->withRole(Role::Guru);
+    }
+
+    /**
+     * Indicate that the user is a student.
+     */
+    public function siswa(): static
+    {
+        return $this->withRole(Role::Siswa);
+    }
+
+    /**
+     * Indicate that the user is a parent.
+     */
+    public function orangTua(): static
+    {
+        return $this->withRole(Role::OrangTua);
+    }
+
+    /**
      * Indicate that the model has two-factor authentication configured.
      */
-    public function withTwoFactor(): static {}
+    // public function withTwoFactor(): static {}
 }

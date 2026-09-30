@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Role;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -15,11 +16,26 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $accounts = [
+            ['name' => 'Admin Sekolah', 'email' => 'admin@sekolahanaksaleh.sch.id', 'role' => Role::Admin],
+            ['name' => 'Budi Santoso', 'email' => 'guru@sekolahanaksaleh.sch.id', 'role' => Role::Guru],
+            ['name' => 'Siti Aminah', 'email' => 'siswa@sekolahanaksaleh.sch.id', 'role' => Role::Siswa],
+            ['name' => 'Ahmad Fauzi', 'email' => 'orangtua@sekolahanaksaleh.sch.id', 'role' => Role::OrangTua],
+            ['name' => 'Test User', 'email' => 'test@example.com', 'role' => Role::Admin],
+        ];
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        foreach ($accounts as $account) {
+            $user = User::query()->firstOrNew(['email' => $account['email']]);
+
+            $user->name = $account['name'];
+            $user->role = $account['role'];
+            $user->email_verified_at ??= now();
+
+            if (! $user->exists) {
+                $user->password = 'password';
+            }
+
+            $user->save();
+        }
     }
 }
