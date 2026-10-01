@@ -1,8 +1,12 @@
 <?php
 
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\ParentProfileController as AdminParentProfileController;
+use App\Http\Controllers\Admin\QuestionController as AdminQuestionController;
 use App\Http\Controllers\Admin\SchoolClassController as AdminSchoolClassController;
+use App\Http\Controllers\Admin\StudentController as AdminStudentController;
 use App\Http\Controllers\Admin\SubjectController as AdminSubjectController;
+use App\Http\Controllers\Admin\TeacherController as AdminTeacherController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
@@ -20,6 +24,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::get('/', AdminDashboardController::class)->name('dashboard');
 
         Route::get('users', [AdminUserController::class, 'index'])->name('users.index');
+        Route::post('users', [AdminUserController::class, 'store'])->name('users.store');
+        Route::patch('users/{user}', [AdminUserController::class, 'update'])->name('users.update');
+        Route::delete('users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
 
         Route::get('subjects', [AdminSubjectController::class, 'index'])->name('subjects.index');
         Route::get('subjects/create', [AdminSubjectController::class, 'create'])->name('subjects.create');
@@ -34,6 +41,12 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::get('classes/{class}/edit', [AdminSchoolClassController::class, 'edit'])->name('classes.edit');
         Route::patch('classes/{class}', [AdminSchoolClassController::class, 'update'])->name('classes.update');
         Route::delete('classes/{class}', [AdminSchoolClassController::class, 'destroy'])->name('classes.destroy');
+
+        Route::resource('students', AdminStudentController::class)->except('show');
+        Route::resource('teachers', AdminTeacherController::class)->except('show');
+        Route::resource('parents', AdminParentProfileController::class)->except('show')->parameters(['parents' => 'parent']);
+        Route::resource('questions', AdminQuestionController::class);
+        Route::post('question-banks', [AdminQuestionController::class, 'storeBank'])->name('question-banks.store');
 
         Route::inertia('people', 'admin/people/index')->name('people.index');
         Route::inertia('exam-monitoring', 'admin/exam-monitoring/index')->name('exam-monitoring.index');

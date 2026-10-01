@@ -63,3 +63,44 @@ test('admin dashboard summarises users per role', function () {
             ->where('stats.4.value', 0),
         );
 });
+
+test('admin can create a user account', function () {
+    $admin = User::factory()->admin()->create();
+
+    $this->actingAs($admin)
+        ->post(route('admin.users.store'), [
+            'name' => 'Siti Guru',
+            'email' => 'siti@example.com',
+            'role' => Role::Guru->value,
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ])
+        ->assertRedirect(route('admin.users.index'));
+
+    $this->assertDatabaseHas('users', ['name' => 'Siti Guru', 'email' => 'siti@example.com', 'role' => Role::Guru->value]);
+});
+
+test('admin can update another user account', function () {
+    $admin = User::factory()->admin()->create();
+    $user = User::factory()->siswa()->create(['email' => 'lama@example.com']);
+
+    $this->actingAs($admin)
+        ->patch(route('admin.users.update', $user), [
+            'name' => 'Dimas Siswa',
+            'email' => 'baru@example.com',
+            'role' => Role::Guru->value,
+        ])
+        ->assertRedirect(route('admin.users.index'));
+
+    $this->assertDatabaseHas('users', ['id' => $user->id, 'name' => 'Dimas Siswa', 'email' => 'baru@example.com', 'role' => Role::Guru->value]);
+});
+
+test('admin cannot delete their own account', function () {
+    $admin = User::factory()->admin()->create();
+
+    $this->actingAs($admin)
+        ->delete(route('admin.users.destroy', $admin))
+        ->assertForbidden();
+
+    $this->assertModelExists($admin);
+});

@@ -1,18 +1,16 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
 import SubjectController from '@/actions/App/Http/Controllers/Admin/SubjectController';
 import { AdminPagination } from '@/components/admin/admin-pagination';
+import { DeleteConfirmationDialog } from '@/components/admin/delete-confirmation-dialog';
+import { SubjectFormDialog } from '@/components/admin/subject-form-dialog';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { dashboard } from '@/routes/admin';
-import {
-    create as subjectsCreate,
-    edit as subjectsEdit,
-    index as subjectsIndex,
-} from '@/routes/admin/subjects';
+import { index as subjectsIndex } from '@/routes/admin/subjects';
 
 type AdminSubject = {
     id: number;
@@ -39,6 +37,9 @@ export default function AdminSubjectsIndex({
     filters: { search: string };
 }) {
     const [search, setSearch] = useState(filters.search);
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [selectedSubject, setSelectedSubject] = useState<AdminSubject | null>(null);
+    const [subjectToDelete, setSubjectToDelete] = useState<AdminSubject | null>(null);
 
     const submit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -57,19 +58,16 @@ export default function AdminSubjectsIndex({
         );
     };
 
-    const destroy = (subject: AdminSubject) => {
-        if (
-            !window.confirm(
-                `Hapus mata pelajaran "${subject.name}" (${subject.code})?`,
-            )
-        ) {
-            return;
-        }
-
-        router.delete(SubjectController.destroy.url(subject.id), {
+    const destroy = () => {
+        if (!subjectToDelete) return;
+        router.delete(SubjectController.destroy.url(subjectToDelete.id), {
             preserveScroll: true,
+            onSuccess: () => setSubjectToDelete(null),
         });
     };
+
+    const openCreateDialog = () => { setSelectedSubject(null); setDialogOpen(true); };
+    const openEditDialog = (subject: AdminSubject) => { setSelectedSubject(subject); setDialogOpen(true); };
 
     return (
         <>
@@ -80,9 +78,7 @@ export default function AdminSubjectsIndex({
                         title="Kelola Mata Pelajaran"
                         description="Daftar mapel untuk bank soal dan ujian."
                     />
-                    <Button asChild>
-                        <Link href={subjectsCreate().url}>Tambah</Link>
-                    </Button>
+                    <Button onClick={openCreateDialog}>Tambah</Button>
                 </div>
                 <Card>
                     <CardHeader>
@@ -123,10 +119,8 @@ export default function AdminSubjectsIndex({
                                         </td>
                                         <td className="py-3 text-right">
                                             <div className="flex justify-end gap-2">
-                                                <Button variant="outline" size="sm" asChild>
-                                                    <Link href={subjectsEdit(s.id).url}>Ubah</Link>
-                                                </Button>
-                                                <Button variant="destructive" size="sm" onClick={() => destroy(s)}>
+                                                <Button variant="outline" size="sm" onClick={() => openEditDialog(s)}>Ubah</Button>
+                                                <Button variant="destructive" size="sm" onClick={() => setSubjectToDelete(s)}>
                                                     Hapus
                                                 </Button>
                                             </div>
@@ -142,6 +136,8 @@ export default function AdminSubjectsIndex({
                         />
                     </CardContent>
                 </Card>
+                <SubjectFormDialog open={dialogOpen} onOpenChange={setDialogOpen} subject={selectedSubject} />
+                <DeleteConfirmationDialog open={subjectToDelete !== null} onOpenChange={(open) => !open && setSubjectToDelete(null)} itemName={subjectToDelete ? `${subjectToDelete.name} (${subjectToDelete.code})` : null} onConfirm={destroy} />
             </div>
         </>
     );
@@ -153,5 +149,3 @@ AdminSubjectsIndex.layout = {
         { title: 'Kelola Mata Pelajaran', href: subjectsIndex() },
     ],
 };
-
-

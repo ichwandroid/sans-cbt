@@ -13,9 +13,12 @@ import { dashboard as adminDashboard } from '@/routes/admin';
 import { index as auditLogsIndex } from '@/routes/admin/audit-logs';
 import { index as classesIndex } from '@/routes/admin/classes';
 import { index as examMonitoringIndex } from '@/routes/admin/exam-monitoring';
-import { index as peopleIndex } from '@/routes/admin/people';
 import { index as reportsIndex } from '@/routes/admin/reports';
+import { index as parentsIndex } from '@/routes/admin/parents';
 import { index as subjectsIndex } from '@/routes/admin/subjects';
+import { index as questionsIndex } from '@/routes/admin/questions';
+import { index as studentsIndex } from '@/routes/admin/students';
+import { index as teachersIndex } from '@/routes/admin/teachers';
 import { index as usersIndex } from '@/routes/admin/users';
 import type { NavItem, RoleSlug } from '@/types';
 
@@ -52,8 +55,18 @@ const adminNavGroups: NavGroup[] = [
                 icon: UserCog,
             },
             {
-                title: 'Guru & Siswa',
-                href: peopleIndex(),
+                title: 'Siswa',
+                href: studentsIndex(),
+                icon: Users,
+            },
+            {
+                title: 'Guru',
+                href: teachersIndex(),
+                icon: Users,
+            },
+            {
+                title: 'Orang Tua',
+                href: parentsIndex(),
                 icon: Users,
             },
         ],
@@ -65,6 +78,11 @@ const adminNavGroups: NavGroup[] = [
                 title: 'Mata Pelajaran',
                 href: subjectsIndex(),
                 icon: BookOpen,
+            },
+            {
+                title: 'Bank Soal',
+                href: questionsIndex(),
+                icon: ClipboardList,
             },
             {
                 title: 'Kelas',

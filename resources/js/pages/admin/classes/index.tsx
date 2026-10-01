@@ -1,17 +1,15 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
 import SchoolClassController from '@/actions/App/Http/Controllers/Admin/SchoolClassController';
 import { AdminPagination } from '@/components/admin/admin-pagination';
+import { DeleteConfirmationDialog } from '@/components/admin/delete-confirmation-dialog';
+import { SchoolClassFormDialog } from '@/components/admin/school-class-form-dialog';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { dashboard } from '@/routes/admin';
-import {
-    create as classesCreate,
-    edit as classesEdit,
-    index as classesIndex,
-} from '@/routes/admin/classes';
+import { index as classesIndex } from '@/routes/admin/classes';
 
 type AdminSchoolClass = {
     id: number;
@@ -19,6 +17,7 @@ type AdminSchoolClass = {
     level: string | null;
     academic_year: string;
     homeroom_teacher: string | null;
+    homeroom_teacher_id?: number | null;
     students_count: number;
 };
 
@@ -34,11 +33,16 @@ type Paginator<T> = {
 export default function AdminClassesIndex({
     classes,
     filters,
+    teachers,
 }: {
     classes: Paginator<AdminSchoolClass>;
     filters: { search: string };
+    teachers: { value: number; label: string }[];
 }) {
     const [search, setSearch] = useState(filters.search);
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [selectedClass, setSelectedClass] = useState<AdminSchoolClass | null>(null);
+    const [classToDelete, setClassToDelete] = useState<AdminSchoolClass | null>(null);
 
     const submit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -57,15 +61,16 @@ export default function AdminClassesIndex({
         );
     };
 
-    const destroy = (schoolClass: AdminSchoolClass) => {
-        if (!window.confirm(`Hapus kelas "${schoolClass.name}"?`)) {
-            return;
-        }
-
-        router.delete(SchoolClassController.destroy.url(schoolClass.id), {
+    const destroy = () => {
+        if (!classToDelete) return;
+        router.delete(SchoolClassController.destroy.url(classToDelete.id), {
             preserveScroll: true,
+            onSuccess: () => setClassToDelete(null),
         });
     };
+
+    const openCreateDialog = () => { setSelectedClass(null); setDialogOpen(true); };
+    const openEditDialog = (schoolClass: AdminSchoolClass) => { setSelectedClass(schoolClass); setDialogOpen(true); };
 
     return (
         <>
@@ -76,9 +81,7 @@ export default function AdminClassesIndex({
                         title="Kelola Kelas"
                         description="Daftar rombel untuk peserta ujian."
                     />
-                    <Button asChild>
-                        <Link href={classesCreate().url}>Tambah</Link>
-                    </Button>
+                    <Button onClick={openCreateDialog}>Tambah</Button>
                 </div>
                 <Card>
                     <CardHeader>
@@ -132,26 +135,11 @@ export default function AdminClassesIndex({
                                         </td>
                                         <td className="py-3 text-right">
                                             <div className="flex justify-end gap-2">
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    asChild
-                                                >
-                                                    <Link
-                                                        href={
-                                                            classesEdit(item.id)
-                                                                .url
-                                                        }
-                                                    >
-                                                        Ubah
-                                                    </Link>
-                                                </Button>
+                                                <Button variant="outline" size="sm" onClick={() => openEditDialog(item)}>Ubah</Button>
                                                 <Button
                                                     variant="destructive"
                                                     size="sm"
-                                                    onClick={() =>
-                                                        destroy(item)
-                                                    }
+                                                    onClick={() => setClassToDelete(item)}
                                                 >
                                                     Hapus
                                                 </Button>
@@ -168,6 +156,8 @@ export default function AdminClassesIndex({
                         />
                     </CardContent>
                 </Card>
+                <SchoolClassFormDialog open={dialogOpen} onOpenChange={setDialogOpen} schoolClass={selectedClass} teachers={teachers} />
+                <DeleteConfirmationDialog open={classToDelete !== null} onOpenChange={(open) => !open && setClassToDelete(null)} itemName={classToDelete?.name ?? null} onConfirm={destroy} />
             </div>
         </>
     );

@@ -39,12 +39,14 @@ class SchoolClassController extends Controller
                 'name' => $class->name,
                 'level' => $class->level,
                 'academic_year' => $class->academic_year,
+                'homeroom_teacher_id' => $class->homeroom_teacher_id,
                 'homeroom_teacher' => $class->homeroomTeacher?->full_name,
                 'students_count' => (int) $class->getAttribute('students_count'),
             ]);
 
         return Inertia::render('admin/classes/index', [
             'classes' => $classes,
+            'teachers' => $this->teacherOptions(),
             'filters' => [
                 'search' => $search,
             ],

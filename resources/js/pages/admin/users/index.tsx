@@ -1,6 +1,9 @@
 import { Head, router } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { useState } from 'react';
+import UserController from '@/actions/App/Http/Controllers/Admin/UserController';
+import { DeleteConfirmationDialog } from '@/components/admin/delete-confirmation-dialog';
+import { UserFormDialog } from '@/components/admin/user-form-dialog';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -33,10 +36,14 @@ type Props = {
     filters: {
         search: string;
     };
+    roles: { value: string; label: string }[];
 };
 
-export default function AdminUsersIndex({ users, filters }: Props) {
+export default function AdminUsersIndex({ users, filters, roles }: Props) {
     const [search, setSearch] = useState(filters.search);
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+    const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null);
 
     const submit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -56,15 +63,23 @@ export default function AdminUsersIndex({ users, filters }: Props) {
         );
     };
 
+    const openCreateDialog = () => { setSelectedUser(null); setDialogOpen(true); };
+    const openEditDialog = (user: AdminUser) => { setSelectedUser(user); setDialogOpen(true); };
+    const destroy = () => {
+        if (!userToDelete) return;
+
+        router.delete(UserController.destroy.url(userToDelete.id), {
+            preserveScroll: true,
+            onSuccess: () => setUserToDelete(null),
+        });
+    };
+
     return (
         <>
             <Head title="Kelola Pengguna" />
 
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <Heading
-                    title="Kelola Pengguna"
-                    description="Daftar akun Admin, Guru, Siswa, dan Orang Tua."
-                />
+                <div className="flex flex-wrap items-start justify-between gap-3"><Heading title="Kelola Pengguna" description="Daftar akun Admin, Guru, Siswa, dan Orang Tua." /><Button onClick={openCreateDialog}>Tambah Pengguna</Button></div>
 
                 <Card>
                     <CardHeader>
@@ -103,6 +118,7 @@ export default function AdminUsersIndex({ users, filters }: Props) {
                                     <th className="py-2 pr-4 font-medium">
                                         Status
                                     </th>
+                                    <th className="py-2 text-right font-medium">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -127,13 +143,19 @@ export default function AdminUsersIndex({ users, filters }: Props) {
                                                 ? 'Terverifikasi'
                                                 : 'Belum verifikasi'}
                                         </td>
+                                        <td className="py-3 text-right">
+                                            <div className="flex justify-end gap-2">
+                                                <Button variant="outline" size="sm" onClick={() => openEditDialog(user)}>Ubah</Button>
+                                                <Button variant="destructive" size="sm" onClick={() => setUserToDelete(user)}>Hapus</Button>
+                                            </div>
+                                        </td>
                                     </tr>
                                 ))}
 
                                 {users.data.length === 0 && (
                                     <tr>
                                         <td
-                                            colSpan={4}
+                                            colSpan={5}
                                             className="py-8 text-center text-muted-foreground"
                                         >
                                             Tidak ada pengguna yang cocok dengan
@@ -184,6 +206,8 @@ export default function AdminUsersIndex({ users, filters }: Props) {
                         </div>
                     </CardContent>
                 </Card>
+                <UserFormDialog open={dialogOpen} onOpenChange={setDialogOpen} user={selectedUser} roles={roles} />
+                <DeleteConfirmationDialog open={userToDelete !== null} onOpenChange={(open) => !open && setUserToDelete(null)} itemName={userToDelete?.name ?? null} onConfirm={destroy} />
             </div>
         </>
     );
