@@ -63,8 +63,14 @@ export default function AdminUsersIndex({ users, filters, roles }: Props) {
         );
     };
 
-    const openCreateDialog = () => { setSelectedUser(null); setDialogOpen(true); };
-    const openEditDialog = (user: AdminUser) => { setSelectedUser(user); setDialogOpen(true); };
+    const openCreateDialog = () => {
+        setSelectedUser(null);
+        setDialogOpen(true);
+    };
+    const openEditDialog = (user: AdminUser) => {
+        setSelectedUser(user);
+        setDialogOpen(true);
+    };
     const destroy = () => {
         if (!userToDelete) return;
 
@@ -79,7 +85,13 @@ export default function AdminUsersIndex({ users, filters, roles }: Props) {
             <Head title="Kelola Pengguna" />
 
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <div className="flex flex-wrap items-start justify-between gap-3"><Heading title="Kelola Pengguna" description="Daftar akun Admin, Guru, Siswa, dan Orang Tua." /><Button onClick={openCreateDialog}>Tambah Pengguna</Button></div>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                    <Heading
+                        title="Kelola Pengguna"
+                        description="Daftar akun Admin, Guru, Siswa, dan Orang Tua."
+                    />
+                    <Button onClick={openCreateDialog}>Tambah Pengguna</Button>
+                </div>
 
                 <Card>
                     <CardHeader>
@@ -118,7 +130,9 @@ export default function AdminUsersIndex({ users, filters, roles }: Props) {
                                     <th className="py-2 pr-4 font-medium">
                                         Status
                                     </th>
-                                    <th className="py-2 text-right font-medium">Aksi</th>
+                                    <th className="py-2 text-right font-medium">
+                                        Aksi
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -145,8 +159,24 @@ export default function AdminUsersIndex({ users, filters, roles }: Props) {
                                         </td>
                                         <td className="py-3 text-right">
                                             <div className="flex justify-end gap-2">
-                                                <Button variant="outline" size="sm" onClick={() => openEditDialog(user)}>Ubah</Button>
-                                                <Button variant="destructive" size="sm" onClick={() => setUserToDelete(user)}>Hapus</Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() =>
+                                                        openEditDialog(user)
+                                                    }
+                                                >
+                                                    Ubah
+                                                </Button>
+                                                <Button
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    onClick={() =>
+                                                        setUserToDelete(user)
+                                                    }
+                                                >
+                                                    Hapus
+                                                </Button>
                                             </div>
                                         </td>
                                     </tr>
@@ -206,8 +236,18 @@ export default function AdminUsersIndex({ users, filters, roles }: Props) {
                         </div>
                     </CardContent>
                 </Card>
-                <UserFormDialog open={dialogOpen} onOpenChange={setDialogOpen} user={selectedUser} roles={roles} />
-                <DeleteConfirmationDialog open={userToDelete !== null} onOpenChange={(open) => !open && setUserToDelete(null)} itemName={userToDelete?.name ?? null} onConfirm={destroy} />
+                <UserFormDialog
+                    open={dialogOpen}
+                    onOpenChange={setDialogOpen}
+                    user={selectedUser}
+                    roles={roles}
+                />
+                <DeleteConfirmationDialog
+                    open={userToDelete !== null}
+                    onOpenChange={(open) => !open && setUserToDelete(null)}
+                    itemName={userToDelete?.name ?? null}
+                    onConfirm={destroy}
+                />
             </div>
         </>
     );

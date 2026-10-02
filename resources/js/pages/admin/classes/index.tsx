@@ -41,8 +41,12 @@ export default function AdminClassesIndex({
 }) {
     const [search, setSearch] = useState(filters.search);
     const [dialogOpen, setDialogOpen] = useState(false);
-    const [selectedClass, setSelectedClass] = useState<AdminSchoolClass | null>(null);
-    const [classToDelete, setClassToDelete] = useState<AdminSchoolClass | null>(null);
+    const [selectedClass, setSelectedClass] = useState<AdminSchoolClass | null>(
+        null,
+    );
+    const [classToDelete, setClassToDelete] = useState<AdminSchoolClass | null>(
+        null,
+    );
 
     const submit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -69,8 +73,14 @@ export default function AdminClassesIndex({
         });
     };
 
-    const openCreateDialog = () => { setSelectedClass(null); setDialogOpen(true); };
-    const openEditDialog = (schoolClass: AdminSchoolClass) => { setSelectedClass(schoolClass); setDialogOpen(true); };
+    const openCreateDialog = () => {
+        setSelectedClass(null);
+        setDialogOpen(true);
+    };
+    const openEditDialog = (schoolClass: AdminSchoolClass) => {
+        setSelectedClass(schoolClass);
+        setDialogOpen(true);
+    };
 
     return (
         <>
@@ -135,11 +145,21 @@ export default function AdminClassesIndex({
                                         </td>
                                         <td className="py-3 text-right">
                                             <div className="flex justify-end gap-2">
-                                                <Button variant="outline" size="sm" onClick={() => openEditDialog(item)}>Ubah</Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() =>
+                                                        openEditDialog(item)
+                                                    }
+                                                >
+                                                    Ubah
+                                                </Button>
                                                 <Button
                                                     variant="destructive"
                                                     size="sm"
-                                                    onClick={() => setClassToDelete(item)}
+                                                    onClick={() =>
+                                                        setClassToDelete(item)
+                                                    }
                                                 >
                                                     Hapus
                                                 </Button>
@@ -156,13 +176,22 @@ export default function AdminClassesIndex({
                         />
                     </CardContent>
                 </Card>
-                <SchoolClassFormDialog open={dialogOpen} onOpenChange={setDialogOpen} schoolClass={selectedClass} teachers={teachers} />
-                <DeleteConfirmationDialog open={classToDelete !== null} onOpenChange={(open) => !open && setClassToDelete(null)} itemName={classToDelete?.name ?? null} onConfirm={destroy} />
+                <SchoolClassFormDialog
+                    open={dialogOpen}
+                    onOpenChange={setDialogOpen}
+                    schoolClass={selectedClass}
+                    teachers={teachers}
+                />
+                <DeleteConfirmationDialog
+                    open={classToDelete !== null}
+                    onOpenChange={(open) => !open && setClassToDelete(null)}
+                    itemName={classToDelete?.name ?? null}
+                    onConfirm={destroy}
+                />
             </div>
         </>
     );
 }
-
 
 AdminClassesIndex.layout = {
     breadcrumbs: [

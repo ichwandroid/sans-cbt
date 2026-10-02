@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ParentProfileController as AdminParentProfileController;
 use App\Http\Controllers\Admin\QuestionController as AdminQuestionController;
+use App\Http\Controllers\Admin\QuestionMediaController as AdminQuestionMediaController;
 use App\Http\Controllers\Admin\SchoolClassController as AdminSchoolClassController;
 use App\Http\Controllers\Admin\StudentController as AdminStudentController;
 use App\Http\Controllers\Admin\SubjectController as AdminSubjectController;
@@ -45,8 +46,13 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::resource('students', AdminStudentController::class)->except('show');
         Route::resource('teachers', AdminTeacherController::class)->except('show');
         Route::resource('parents', AdminParentProfileController::class)->except('show')->parameters(['parents' => 'parent']);
-        Route::resource('questions', AdminQuestionController::class);
+        Route::resource('questions', AdminQuestionController::class)->except(['create', 'edit']);
+        Route::get('question-media/{path}', AdminQuestionMediaController::class)
+            ->where('path', '[A-Za-z0-9._-]+')
+            ->name('question-media.show');
         Route::post('question-banks', [AdminQuestionController::class, 'storeBank'])->name('question-banks.store');
+        Route::put('question-banks/{questionBank}', [AdminQuestionController::class, 'updateBank'])->name('question-banks.update');
+        Route::delete('question-banks/{questionBank}', [AdminQuestionController::class, 'destroyBank'])->name('question-banks.destroy');
 
         Route::inertia('people', 'admin/people/index')->name('people.index');
         Route::inertia('exam-monitoring', 'admin/exam-monitoring/index')->name('exam-monitoring.index');

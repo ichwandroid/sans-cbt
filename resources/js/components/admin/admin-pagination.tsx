@@ -16,9 +16,7 @@ export function AdminPagination<T>(props: {
 }) {
     const { paginator, itemLabel, onPageChange } = props;
     const hasData =
-        paginator.total > 0 &&
-        paginator.from !== null &&
-        paginator.to !== null;
+        paginator.total > 0 && paginator.from !== null && paginator.to !== null;
 
     return (
         <div className="mt-4 flex flex-col items-center justify-between gap-3 sm:flex-row">

@@ -78,7 +78,7 @@ export default function AdminClassCreate({
                                             id="wali"
                                             name="homeroom_teacher_id"
                                             defaultValue=""
-                                            className="border-input flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-xs outline-none"
+                                            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none"
                                         >
                                             <option value="">
                                                 Tanpa wali kelas

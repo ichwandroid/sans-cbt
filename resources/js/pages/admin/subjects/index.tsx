@@ -38,8 +38,12 @@ export default function AdminSubjectsIndex({
 }) {
     const [search, setSearch] = useState(filters.search);
     const [dialogOpen, setDialogOpen] = useState(false);
-    const [selectedSubject, setSelectedSubject] = useState<AdminSubject | null>(null);
-    const [subjectToDelete, setSubjectToDelete] = useState<AdminSubject | null>(null);
+    const [selectedSubject, setSelectedSubject] = useState<AdminSubject | null>(
+        null,
+    );
+    const [subjectToDelete, setSubjectToDelete] = useState<AdminSubject | null>(
+        null,
+    );
 
     const submit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -66,8 +70,14 @@ export default function AdminSubjectsIndex({
         });
     };
 
-    const openCreateDialog = () => { setSelectedSubject(null); setDialogOpen(true); };
-    const openEditDialog = (subject: AdminSubject) => { setSelectedSubject(subject); setDialogOpen(true); };
+    const openCreateDialog = () => {
+        setSelectedSubject(null);
+        setDialogOpen(true);
+    };
+    const openEditDialog = (subject: AdminSubject) => {
+        setSelectedSubject(subject);
+        setDialogOpen(true);
+    };
 
     return (
         <>
@@ -101,26 +111,61 @@ export default function AdminSubjectsIndex({
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b text-left text-xs uppercase">
-                                    <th className="py-2 pr-4 font-medium">Kode</th>
-                                    <th className="py-2 pr-4 font-medium">Nama</th>
-                                    <th className="py-2 pr-4 font-medium">Status</th>
-                                    <th className="py-2 text-right font-medium">Aksi</th>
+                                    <th className="py-2 pr-4 font-medium">
+                                        Kode
+                                    </th>
+                                    <th className="py-2 pr-4 font-medium">
+                                        Nama
+                                    </th>
+                                    <th className="py-2 pr-4 font-medium">
+                                        Status
+                                    </th>
+                                    <th className="py-2 text-right font-medium">
+                                        Aksi
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {subjects.data.map((s) => (
-                                    <tr key={s.id} className="border-b last:border-0">
-                                        <td className="py-3 pr-4 font-medium">{s.code}</td>
+                                    <tr
+                                        key={s.id}
+                                        className="border-b last:border-0"
+                                    >
+                                        <td className="py-3 pr-4 font-medium">
+                                            {s.code}
+                                        </td>
                                         <td className="py-3 pr-4">{s.name}</td>
                                         <td className="py-3 pr-4">
-                                            <Badge variant={s.is_active ? 'default' : 'secondary'}>
-                                                {s.is_active ? 'Aktif' : 'Nonaktif'}
+                                            <Badge
+                                                variant={
+                                                    s.is_active
+                                                        ? 'default'
+                                                        : 'secondary'
+                                                }
+                                            >
+                                                {s.is_active
+                                                    ? 'Aktif'
+                                                    : 'Nonaktif'}
                                             </Badge>
                                         </td>
                                         <td className="py-3 text-right">
                                             <div className="flex justify-end gap-2">
-                                                <Button variant="outline" size="sm" onClick={() => openEditDialog(s)}>Ubah</Button>
-                                                <Button variant="destructive" size="sm" onClick={() => setSubjectToDelete(s)}>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() =>
+                                                        openEditDialog(s)
+                                                    }
+                                                >
+                                                    Ubah
+                                                </Button>
+                                                <Button
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    onClick={() =>
+                                                        setSubjectToDelete(s)
+                                                    }
+                                                >
                                                     Hapus
                                                 </Button>
                                             </div>
@@ -136,8 +181,21 @@ export default function AdminSubjectsIndex({
                         />
                     </CardContent>
                 </Card>
-                <SubjectFormDialog open={dialogOpen} onOpenChange={setDialogOpen} subject={selectedSubject} />
-                <DeleteConfirmationDialog open={subjectToDelete !== null} onOpenChange={(open) => !open && setSubjectToDelete(null)} itemName={subjectToDelete ? `${subjectToDelete.name} (${subjectToDelete.code})` : null} onConfirm={destroy} />
+                <SubjectFormDialog
+                    open={dialogOpen}
+                    onOpenChange={setDialogOpen}
+                    subject={selectedSubject}
+                />
+                <DeleteConfirmationDialog
+                    open={subjectToDelete !== null}
+                    onOpenChange={(open) => !open && setSubjectToDelete(null)}
+                    itemName={
+                        subjectToDelete
+                            ? `${subjectToDelete.name} (${subjectToDelete.code})`
+                            : null
+                    }
+                    onConfirm={destroy}
+                />
             </div>
         </>
     );

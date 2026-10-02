@@ -37,7 +37,9 @@ export default function AdminClassEdit({
                 <Card className="max-w-2xl">
                     <CardContent>
                         <Form
-                            {...SchoolClassController.update.form(schoolClass.id)}
+                            {...SchoolClassController.update.form(
+                                schoolClass.id,
+                            )}
                             options={{ preserveScroll: true }}
                             className="space-y-5"
                         >
@@ -60,7 +62,9 @@ export default function AdminClassEdit({
                                             id="level"
                                             name="level"
                                             maxLength={20}
-                                            defaultValue={schoolClass.level ?? ''}
+                                            defaultValue={
+                                                schoolClass.level ?? ''
+                                            }
                                         />
                                         <InputError message={errors.level} />
                                     </div>
@@ -73,7 +77,9 @@ export default function AdminClassEdit({
                                             name="academic_year"
                                             required
                                             maxLength={20}
-                                            defaultValue={schoolClass.academic_year}
+                                            defaultValue={
+                                                schoolClass.academic_year
+                                            }
                                         />
                                         <InputError
                                             message={errors.academic_year}
@@ -85,11 +91,14 @@ export default function AdminClassEdit({
                                             id="wali"
                                             name="homeroom_teacher_id"
                                             defaultValue={
-                                                schoolClass.homeroom_teacher_id === null
+                                                schoolClass.homeroom_teacher_id ===
+                                                null
                                                     ? ''
-                                                    : String(schoolClass.homeroom_teacher_id)
+                                                    : String(
+                                                          schoolClass.homeroom_teacher_id,
+                                                      )
                                             }
-                                            className="border-input flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-xs outline-none"
+                                            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none"
                                         >
                                             <option value="">
                                                 Tanpa wali kelas
@@ -134,4 +143,3 @@ AdminClassEdit.layout = {
         { title: 'Ubah', href: classesIndex() },
     ],
 };
-

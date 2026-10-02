@@ -5,6 +5,7 @@
 Dokumen ini merupakan spesifikasi awal sistem **Computer Based Test (CBT) Sekolah Anak Saleh** berdasarkan flow fitur pada rancangan.
 
 Sistem ditujukan untuk:
+
 - Siswa sebagai peserta ujian.
 - Guru sebagai pembuat dan pengelola soal/ujian.
 - Admin sebagai pengelola sistem.
@@ -51,6 +52,7 @@ Menampilkan seluruh ujian yang tersedia untuk siswa berdasarkan jadwal, kelas, m
 Menampilkan ujian yang dijadwalkan pada hari berjalan.
 
 Informasi minimal:
+
 - Nama ujian
 - Mata pelajaran
 - Kelas
@@ -75,6 +77,7 @@ Status yang dapat digunakan:
 ### 3.3 Sisa Waktu
 
 Menampilkan countdown menuju:
+
 - Waktu mulai ujian
 - Waktu berakhir ujian
 
@@ -93,6 +96,7 @@ Modul utama yang digunakan siswa saat mengerjakan CBT.
 ### 4.1 Pilih Jawaban
 
 Untuk soal pilihan ganda:
+
 - Pilihan A
 - Pilihan B
 - Pilihan C
@@ -104,6 +108,7 @@ Jawaban disimpan secara otomatis.
 ### 4.2 Pindah Soal
 
 Siswa dapat:
+
 - Soal berikutnya
 - Soal sebelumnya
 - Memilih nomor soal secara langsung
@@ -112,6 +117,7 @@ Siswa dapat:
 ### 4.3 Timer Ujian
 
 Timer:
+
 - Dimulai berdasarkan waktu server.
 - Tidak boleh hanya bergantung pada JavaScript client.
 - Tetap divalidasi ketika siswa melakukan request ke server.
@@ -132,6 +138,7 @@ Mengurangi kemungkinan kecurangan dan mencatat aktivitas mencurigakan selama uji
 ### 5.1 Kunci Layar Ujian
 
 Untuk client yang mendukung kiosk mode:
+
 - Fullscreen
 - Kiosk mode
 - Membatasi navigasi keluar aplikasi
@@ -144,6 +151,7 @@ Untuk Android dapat menggunakan Android kiosk/lock task pada perangkat yang dike
 ### 5.2 Deteksi Pindah Aplikasi
 
 Catat ketika:
+
 - Browser kehilangan fokus
 - Window CBT tidak aktif
 - Siswa keluar dari aplikasi CBT
@@ -164,6 +172,7 @@ timestamp: 2026-09-30 09:12:31
 ### 5.3 Acak Soal & Jawaban
 
 Randomisasi:
+
 - Urutan soal
 - Urutan pilihan jawaban
 
@@ -199,12 +208,14 @@ Menghitung nilai secara otomatis setelah siswa menyelesaikan ujian.
 Opsional berdasarkan pengaturan ujian.
 
 Contoh:
+
 - Nilai langsung ditampilkan setelah submit.
 - Nilai disembunyikan sampai guru membuka hasil.
 
 ### 6.2 Rincian Jawaban
 
 Menampilkan:
+
 - Nomor soal
 - Jawaban siswa
 - Kunci jawaban jika diizinkan
@@ -215,6 +226,7 @@ Menampilkan:
 ### 6.3 Riwayat Nilai
 
 Menyimpan histori:
+
 - Ujian
 - Mata pelajaran
 - Nilai
@@ -253,6 +265,7 @@ Tingkat Kesulitan
 ### 7.2 Soal Lain
 
 Arsitektur sebaiknya disiapkan agar dapat dikembangkan untuk:
+
 - Pilihan ganda
 - Benar/salah
 - Esai
@@ -263,6 +276,7 @@ Arsitektur sebaiknya disiapkan agar dapat dikembangkan untuk:
 ### 7.3 Sisipkan Gambar
 
 Guru dapat memasukkan gambar pada:
+
 - Pertanyaan
 - Pilihan jawaban
 
@@ -295,6 +309,7 @@ Durasi
 ### 8.2 Pilih Soal & Pelajaran
 
 Guru dapat:
+
 - Memilih bank soal
 - Memilih sejumlah soal
 - Menggunakan semua soal
@@ -304,6 +319,7 @@ Guru dapat:
 ### 8.3 Atur Peserta
 
 Peserta dapat ditentukan berdasarkan:
+
 - Kelas
 - Rombel
 - Daftar siswa
@@ -326,6 +342,7 @@ Menampilkan hasil ujian terbaru.
 ### 9.2 Grafik Perkembangan
 
 Visualisasi:
+
 - Nilai berdasarkan waktu
 - Nilai per mata pelajaran
 - Perbandingan hasil ujian
@@ -334,6 +351,7 @@ Visualisasi:
 ### 9.3 Notifikasi Nilai Keluar
 
 Opsional:
+
 - Notifikasi dalam aplikasi
 - Email
 - WhatsApp melalui integrasi eksternal jika diperlukan
@@ -351,6 +369,7 @@ Mengatur autentikasi dan akun pengguna.
 ### Admin
 
 Hak akses:
+
 - Pengaturan sistem
 - Pengguna
 - Guru
@@ -363,6 +382,7 @@ Hak akses:
 ### Guru
 
 Hak akses:
+
 - Bank soal
 - Membuat ujian
 - Menjadwalkan ujian
@@ -372,6 +392,7 @@ Hak akses:
 ### Siswa
 
 Hak akses:
+
 - Melihat ujian
 - Mengerjakan ujian
 - Melihat hasil sesuai kebijakan ujian
@@ -380,6 +401,7 @@ Hak akses:
 ### Orang Tua
 
 Opsional:
+
 - Melihat nilai anak
 - Melihat grafik perkembangan
 - Menerima notifikasi hasil
@@ -569,6 +591,7 @@ Answer
 Autosave dilakukan setelah siswa memilih jawaban.
 
 Jika koneksi terputus:
+
 - Jawaban terakhir dapat disimpan sementara pada client.
 - Ketika koneksi kembali, client melakukan sinkronisasi.
 - Server melakukan validasi ulang sebelum menerima jawaban.
