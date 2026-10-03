@@ -17,9 +17,7 @@ use Inertia\Response;
 
 class QuestionController extends Controller
 {
-    public function __construct(private readonly QuestionWriter $questionWriter)
-    {
-    }
+    public function __construct(private readonly QuestionWriter $questionWriter) {}
 
     /**
      * Display a listing of the resource.
@@ -54,16 +52,34 @@ class QuestionController extends Controller
 
     public function storeBank(QuestionBankRequest $request): RedirectResponse
     {
-        QuestionBank::query()->create($request->validated());
+        $bank = QuestionBank::query()->create($request->validated());
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Bank soal berhasil ditambahkan.']);
 
-        return back();
+        // Land on the new bank so questions can be added right away.
+        return redirect()->route('admin.question-banks.show', $bank);
+    }
+
+    /**
+     * Display one question bank with all of its questions.
+     */
+    public function showBank(QuestionBank $questionBank): Response
+    {
+        $questionBank->loadCount('questions')
+            ->load(['subject:id,name', 'schoolClass:id,name', 'teacher:id,full_name', 'questions:id,question_bank_id,content,type,difficulty,weight']);
+
+        return Inertia::render('admin/questions/bank', [
+            'bank' => $this->bankPayload($questionBank),
+            'subjects' => Subject::query()->where('is_active', true)->orderBy('name')->get(['id', 'name'])->map(fn (Subject $subject): array => ['value' => $subject->id, 'label' => $subject->name])->all(),
+            'classes' => SchoolClass::query()->orderBy('name')->get(['id', 'name'])->map(fn (SchoolClass $class): array => ['value' => $class->id, 'label' => $class->name])->all(),
+            'teachers' => Teacher::query()->orderBy('full_name')->get(['id', 'full_name'])->map(fn (Teacher $teacher): array => ['value' => $teacher->id, 'label' => $teacher->full_name])->all(),
+        ]);
     }
 
     public function updateBank(QuestionBankRequest $request, QuestionBank $questionBank): RedirectResponse
     {
         $questionBank->update($request->validated());
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Bank soal berhasil diperbarui.']);
+
         return back();
     }
 
@@ -71,6 +87,7 @@ class QuestionController extends Controller
     {
         $questionBank->delete();
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Bank soal berhasil dihapus.']);
+
         return back();
     }
 
@@ -92,6 +109,7 @@ class QuestionController extends Controller
         $this->questionWriter->update($question, $request);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Soal berhasil diperbarui.']);
+
         return back();
     }
 

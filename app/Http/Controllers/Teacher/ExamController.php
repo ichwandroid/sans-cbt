@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Teacher\ExamRequest;
-use App\Models\Answer;
 use App\Models\Exam;
 use App\Models\ExamSession;
 use App\Models\Question;
@@ -12,9 +11,12 @@ use App\Models\QuestionBank;
 use App\Models\SchoolClass;
 use App\Models\Subject;
 use App\Models\Teacher;
+use App\Services\ExamAuditLogger;
 use App\Services\ExamScorer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -25,9 +27,8 @@ use Inertia\Response;
  */
 class ExamController extends Controller
 {
-    public function __construct(private readonly ExamScorer $scorer)
-    {
-    }
+    public function __construct(private readonly ExamScorer $scorer) {}
+
     /**
      * Display a listing of the teacher's exams.
      */
@@ -44,15 +45,10 @@ class ExamController extends Controller
             ->map(fn (Exam $exam): array => $this->examPayload($exam))
             ->all();
 
-        return Inertia::render('teacher/exams/index', ['exams' => $exams]);
-    }
-
-    /**
-     * Show the form for creating a new exam.
-     */
-    public function create(Request $request): Response
-    {
-        return Inertia::render('teacher/exams/create', $this->formOptions($request));
+        return Inertia::render('teacher/exams/index', [
+            'exams' => $exams,
+            ...$this->formOptions($request),
+        ]);
     }
 
     /**
@@ -65,7 +61,7 @@ class ExamController extends Controller
 
         $exam = DB::transaction(function () use ($request, $teacher, $questionIds): Exam {
             $exam = Exam::query()->create([...$request->safe()->except(['question_ids']), 'teacher_id' => $teacher->id]);
-            $exam->questions()->sync($questionIds->values()->map(fn (int $id, int $index): array => ['question_id' => $id, 'sort_order' => $index + 1])->all());
+            $exam->questions()->sync($this->pivotMap($questionIds));
 
             return $exam;
         });
@@ -139,7 +135,7 @@ class ExamController extends Controller
 
         DB::transaction(function () use ($request, $exam, $questionIds): void {
             $exam->update($request->safe()->except(['question_ids']));
-            $exam->questions()->sync($questionIds->values()->map(fn (int $id, int $index): array => ['question_id' => $id, 'sort_order' => $index + 1])->all());
+            $exam->questions()->sync($this->pivotMap($questionIds));
         });
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Ujian berhasil diperbarui.']);
@@ -289,9 +285,10 @@ class ExamController extends Controller
                     'remaining_seconds' => $session->status === 'ongoing' ? max(0, now()->diffInSeconds($session->deadline(), false)) : 0,
                     'answered_count' => $session->answers->count(),
                     'questions_count' => $questionsCount,
-                    'last_activity_label' => $lastActivity ? \Illuminate\Support\Carbon::instance($lastActivity)->translatedFormat('H:i:s') : '—',
+                    'last_activity_label' => $lastActivity ? Carbon::instance($lastActivity)->translatedFormat('H:i:s') : '—',
                     'violations_count' => $session->violations_count,
                     'warnings_count' => $session->warnings_count,
+                    'flagged' => $session->violations_count >= ExamAuditLogger::VIOLATION_FLAG_THRESHOLD,
                     'last_violation_label' => $lastViolation?->event_type,
                 ];
             })
@@ -333,9 +330,9 @@ class ExamController extends Controller
     /**
      * Validate that every picked question belongs to one of the teacher's banks.
      *
-     * @return \Illuminate\Support\Collection<int, int>
+     * @return Collection<int, int>
      */
-    private function ownedQuestionIds(ExamRequest $request, Teacher $teacher): \Illuminate\Support\Collection
+    private function ownedQuestionIds(ExamRequest $request, Teacher $teacher): Collection
     {
         $requested = collect($request->input('question_ids'))->map(fn ($id) => (int) $id)->unique()->values();
 
@@ -347,6 +344,22 @@ class ExamController extends Controller
         abort_unless($owned->count() === $requested->count(), 403, 'Ada soal yang bukan milik Anda.');
 
         return $owned;
+    }
+
+    /**
+     * Build the pivot map for questions(): [question_id => ['sort_order' => n]].
+     * sync() keys the array by relation id, so a plain list of pivot rows would
+     * detach the wrong questions and duplicate rows on update.
+     *
+     * @param  Collection<int, int>  $questionIds
+     * @return array<int, array<string, int>>
+     */
+    private function pivotMap(Collection $questionIds): array
+    {
+        return $questionIds
+            ->values()
+            ->mapWithKeys(fn (int $id, int $index): array => [$id => ['sort_order' => $index + 1]])
+            ->all();
     }
 
     /**

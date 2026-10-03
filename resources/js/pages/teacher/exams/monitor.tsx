@@ -1,16 +1,16 @@
-import { Head, Link, router } from "@inertiajs/react";
-import { useEffect, useState } from "react";
-import Heading from "@/components/heading";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { dashboard as teacherDashboard } from "@/routes/teacher";
-import { index as examsIndex, show as examShow } from "@/routes/teacher/exams";
+import { Head, Link, router } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
+import Heading from '@/components/heading';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { dashboard as teacherDashboard } from '@/routes/teacher';
+import { index as examsIndex, show as examShow } from '@/routes/teacher/exams';
 
 type MonitorSession = {
     id: number;
     student_name: string;
-    status: "ongoing" | "submitted" | "expired";
+    status: 'ongoing' | 'submitted' | 'expired';
     started_at_label: string;
     remaining_seconds: number;
     answered_count: number;
@@ -18,22 +18,23 @@ type MonitorSession = {
     last_activity_label: string;
     violations_count: number;
     warnings_count: number;
+    flagged: boolean;
     last_violation_label: string | null;
 };
 
-const STATUS_LABELS: Record<MonitorSession["status"], string> = {
-    ongoing: "Sedang Ujian",
-    submitted: "Dikumpulkan",
-    expired: "Waktu Habis",
+const STATUS_LABELS: Record<MonitorSession['status'], string> = {
+    ongoing: 'Sedang Ujian',
+    submitted: 'Dikumpulkan',
+    expired: 'Waktu Habis',
 };
 
 const STATUS_VARIANT: Record<
-    MonitorSession["status"],
-    "destructive" | "default" | "secondary"
+    MonitorSession['status'],
+    'destructive' | 'default' | 'secondary'
 > = {
-    ongoing: "destructive",
-    submitted: "default",
-    expired: "secondary",
+    ongoing: 'destructive',
+    submitted: 'default',
+    expired: 'secondary',
 };
 
 function formatClock(totalSeconds: number): string {
@@ -41,7 +42,7 @@ function formatClock(totalSeconds: number): string {
     const hours = Math.floor(total / 3600);
     const minutes = Math.floor((total % 3600) / 60);
     const seconds = total % 60;
-    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
 
 function RemainingTime({ seconds }: { seconds: number }) {
@@ -77,7 +78,7 @@ export default function TeacherExamMonitor({
     // Refresh participant progress every 5 seconds while the page is open.
     useEffect(() => {
         const timer = setInterval(() => {
-            router.reload({ only: ["sessions"] });
+            router.reload({ only: ['sessions'] });
         }, 5000);
         return () => clearInterval(timer);
     }, []);
@@ -117,7 +118,7 @@ export default function TeacherExamMonitor({
                                 {
                                     sessions.filter(
                                         (session) =>
-                                            session.status === "ongoing",
+                                            session.status === 'ongoing',
                                     ).length
                                 }
                             </p>
@@ -132,7 +133,7 @@ export default function TeacherExamMonitor({
                                 {
                                     sessions.filter(
                                         (session) =>
-                                            session.status !== "ongoing",
+                                            session.status !== 'ongoing',
                                     ).length
                                 }
                             </p>
@@ -213,7 +214,7 @@ export default function TeacherExamMonitor({
                                             </div>
                                         </td>
                                         <td className="py-3 pr-4">
-                                            {session.status === "ongoing" ? (
+                                            {session.status === 'ongoing' ? (
                                                 <RemainingTime
                                                     seconds={
                                                         session.remaining_seconds
@@ -226,21 +227,29 @@ export default function TeacherExamMonitor({
                                             )}
                                         </td>
                                         <td className="py-3 pr-4">
+                                            {session.flagged && (
+                                                <Badge
+                                                    variant="destructive"
+                                                    className="mb-1"
+                                                >
+                                                    ⚑ Perlu diperiksa
+                                                </Badge>
+                                            )}
                                             {session.violations_count > 0 ? (
                                                 <Badge variant="destructive">
-                                                    {session.violations_count}{" "}
+                                                    {session.violations_count}{' '}
                                                     pelanggaran
                                                     {session.last_violation_label
                                                         ? ` · ${session.last_violation_label}`
-                                                        : ""}
+                                                        : ''}
                                                 </Badge>
                                             ) : session.warnings_count > 0 ? (
                                                 <Badge variant="secondary">
-                                                    {session.warnings_count}{" "}
+                                                    {session.warnings_count}{' '}
                                                     peringatan
                                                     {session.last_violation_label
                                                         ? ` · ${session.last_violation_label}`
-                                                        : ""}
+                                                        : ''}
                                                 </Badge>
                                             ) : (
                                                 <span className="text-emerald-600 dark:text-emerald-400">
@@ -249,9 +258,9 @@ export default function TeacherExamMonitor({
                                             )}
                                         </td>
                                         <td className="py-3 pr-4 text-muted-foreground">
-                                            {session.last_activity_label}{" "}
+                                            {session.last_activity_label}{' '}
                                             <span className="text-xs">
-                                                ({session.started_at_label}{" "}
+                                                ({session.started_at_label}{' '}
                                                 mulai)
                                             </span>
                                         </td>
@@ -279,8 +288,8 @@ export default function TeacherExamMonitor({
 
 TeacherExamMonitor.layout = {
     breadcrumbs: [
-        { title: "Dashboard Guru", href: teacherDashboard() },
-        { title: "Ujian", href: examsIndex() },
-        { title: "Pantau Peserta", href: window.location.href },
+        { title: 'Dashboard Guru', href: teacherDashboard() },
+        { title: 'Ujian', href: examsIndex() },
+        { title: 'Pantau Peserta', href: window.location.href },
     ],
 };

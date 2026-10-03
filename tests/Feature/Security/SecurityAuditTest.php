@@ -10,7 +10,6 @@ use App\Models\Student;
 use App\Models\Subject;
 use App\Models\Teacher;
 use App\Models\User;
-use Illuminate\Support\Carbon;
 
 function securityFixture(): array
 {
@@ -188,4 +187,68 @@ test('teacher monitor payload exposes violation counters', function () {
             ->where('sessions.0.warnings_count', 1)
             ->where('sessions.0.violations_count', 1)
             ->where('sessions.0.last_violation_label', 'FULLSCREEN_EXIT'));
+});
+
+test('copy and paste attempts are recorded as warnings', function () {
+    [$exam, $session, $siswaUser] = securityFixture();
+
+    $this->actingAs($siswaUser)
+        ->postJson(route('student.exams.security', $session), ['type' => 'COPY_ATTEMPT'])
+        ->assertOk()
+        ->assertJson(['ok' => true, 'recorded' => true]);
+
+    $this->actingAs($siswaUser)
+        ->postJson(route('student.exams.security', $session), ['type' => 'PASTE_BLOCKED', 'metadata' => ['target' => 'essay']])
+        ->assertOk()
+        ->assertJson(['ok' => true, 'recorded' => true]);
+
+    expect(AuditLog::query()->where('event_type', 'COPY_ATTEMPT')->where('level', 'warning')->where('exam_session_id', $session->id)->exists())->toBeTrue();
+    expect(AuditLog::query()->where('event_type', 'PASTE_BLOCKED')->where('level', 'warning')->exists())->toBeTrue();
+});
+
+test('repeated violations report a running count that flags the session', function () {
+    [$exam, $session, $siswaUser] = securityFixture();
+
+    foreach ([1, 2, 3] as $expectedCount) {
+        $this->actingAs($siswaUser)
+            ->postJson(route('student.exams.security', $session), ['type' => 'FULLSCREEN_EXIT'])
+            ->assertOk()
+            ->assertJson(['ok' => true, 'recorded' => true, 'violation_count' => $expectedCount]);
+    }
+
+    $guruUser = User::whereHas('teacher')->first();
+    $this->actingAs($guruUser)
+        ->get(route('teacher.exams.monitor', $exam))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('sessions.0.violations_count', 3)
+            ->where('sessions.0.flagged', true));
+});
+
+test('sessions below the violation threshold are not flagged', function () {
+    [$exam, $session, $siswaUser] = securityFixture();
+
+    $this->actingAs($siswaUser)
+        ->postJson(route('student.exams.security', $session), ['type' => 'FULLSCREEN_EXIT'])
+        ->assertOk()
+        ->assertJson(['violation_count' => 1]);
+
+    $guruUser = User::whereHas('teacher')->first();
+    $this->actingAs($guruUser)
+        ->get(route('teacher.exams.monitor', $exam))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('sessions.0.violations_count', 1)
+            ->where('sessions.0.flagged', false));
+});
+
+test('the exam work page tells the client the violation flag threshold', function () {
+    [$exam, $session, $siswaUser] = securityFixture();
+
+    $this->actingAs($siswaUser)
+        ->get(route('student.exams.work', $session))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('student/exams/work')
+            ->where('session.violation_flag_threshold', 3));
 });

@@ -22,9 +22,7 @@ use Inertia\Response;
  */
 class QuestionController extends Controller
 {
-    public function __construct(private readonly QuestionWriter $questionWriter)
-    {
-    }
+    public function __construct(private readonly QuestionWriter $questionWriter) {}
 
     /**
      * Display the teacher's question banks.
@@ -64,11 +62,28 @@ class QuestionController extends Controller
     {
         $teacher = $this->profile($request);
 
-        QuestionBank::query()->create([...$request->validated(), 'teacher_id' => $teacher->id]);
-
+        $bank = QuestionBank::query()->create([...$request->validated(), 'teacher_id' => $teacher->id]);
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Bank soal berhasil ditambahkan.']);
 
-        return back();
+        // Land on the new bank so questions can be added right away.
+        return redirect()->route('teacher.question-banks.show', $bank);
+    }
+
+    /**
+     * Display one of the teacher's question banks with all of its questions.
+     */
+    public function showBank(Request $request, QuestionBank $questionBank): Response
+    {
+        $this->authorizeBank($request, $questionBank);
+
+        $questionBank->loadCount('questions')
+            ->load(['subject:id,name', 'schoolClass:id,name', 'questions:id,question_bank_id,content,type,difficulty,weight']);
+
+        return Inertia::render('teacher/questions/bank', [
+            'bank' => $this->bankPayload($questionBank),
+            'subjects' => Subject::query()->where('is_active', true)->orderBy('name')->get(['id', 'name'])->map(fn (Subject $subject): array => ['value' => $subject->id, 'label' => $subject->name])->all(),
+            'classes' => SchoolClass::query()->orderBy('name')->get(['id', 'name'])->map(fn (SchoolClass $class): array => ['value' => $class->id, 'label' => $class->name])->all(),
+        ]);
     }
 
     public function updateBank(QuestionBankRequest $request, QuestionBank $questionBank): RedirectResponse

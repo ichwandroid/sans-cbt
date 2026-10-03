@@ -21,7 +21,24 @@ class ExamAuditLogger
         'WINDOW_FOCUS' => 'info',
         'FULLSCREEN_EXIT' => 'violation',
         'FULLSCREEN_ENTER' => 'info',
+        'COPY_ATTEMPT' => 'warning',
+        'PASTE_BLOCKED' => 'warning',
     ];
+
+    /**
+     * Number of violations after which a session is flagged for the proctor.
+     */
+    public const VIOLATION_FLAG_THRESHOLD = 3;
+
+    /**
+     * Total violation-level audit logs recorded for a session.
+     */
+    public function violationCount(ExamSession $session): int
+    {
+        return $session->auditLogs()
+            ->whereIn('level', ['violation', 'critical'])
+            ->count();
+    }
 
     public function log(?User $user, ?int $examId, ?int $sessionId, string $eventType, string $level = 'info', array $metadata = [], ?Request $request = null): AuditLog
     {

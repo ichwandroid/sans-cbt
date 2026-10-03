@@ -1,28 +1,28 @@
-import { Head, Link, router } from "@inertiajs/react";
-import { useState } from "react";
-import TeacherExamController from "@/actions/App/Http/Controllers/Teacher/ExamController";
-import { DeleteConfirmationDialog } from "@/components/admin/delete-confirmation-dialog";
-import { QUESTION_TYPE_LABELS } from "@/components/admin/question-form-fields";
-import Heading from "@/components/heading";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { dashboard as teacherDashboard } from "@/routes/teacher";
+import { Head, Link, router } from '@inertiajs/react';
+import { useState } from 'react';
+import TeacherExamController from '@/actions/App/Http/Controllers/Teacher/ExamController';
+import { DeleteConfirmationDialog } from '@/components/admin/delete-confirmation-dialog';
+import { QUESTION_TYPE_LABELS } from '@/components/admin/question-form-fields';
+import Heading from '@/components/heading';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { dashboard as teacherDashboard } from '@/routes/teacher';
 import {
     grading as examGrading,
     index as examsIndex,
     monitor as examMonitor,
     publish as examPublish,
     unpublish as examUnpublish,
-} from "@/routes/teacher/exams";
+} from '@/routes/teacher/exams';
 
 type QuestionType =
-    | "multiple_choice"
-    | "multiple_answers"
-    | "true_false"
-    | "statement_true_false"
-    | "matching"
-    | "essay";
+    | 'multiple_choice'
+    | 'multiple_answers'
+    | 'true_false'
+    | 'statement_true_false'
+    | 'matching'
+    | 'essay';
 type ExamQuestion = {
     id: number;
     content: string;
@@ -42,7 +42,7 @@ type Exam = {
     shuffle_options: boolean;
     show_result_immediately: boolean;
     is_published: boolean;
-    status: "draft" | "scheduled" | "ongoing" | "finished";
+    status: 'draft' | 'scheduled' | 'ongoing' | 'finished';
     questions_count: number;
     participants_count: number;
     has_essay: boolean;
@@ -50,21 +50,21 @@ type Exam = {
     questions: ExamQuestion[];
 };
 
-const STATUS_LABELS: Record<Exam["status"], string> = {
-    draft: "Draft",
-    scheduled: "Terjadwal",
-    ongoing: "Berlangsung",
-    finished: "Selesai",
+const STATUS_LABELS: Record<Exam['status'], string> = {
+    draft: 'Draft',
+    scheduled: 'Terjadwal',
+    ongoing: 'Berlangsung',
+    finished: 'Selesai',
 };
 
 const STATUS_VARIANT: Record<
-    Exam["status"],
-    "secondary" | "default" | "destructive" | "outline"
+    Exam['status'],
+    'secondary' | 'default' | 'destructive' | 'outline'
 > = {
-    draft: "secondary",
-    scheduled: "default",
-    ongoing: "destructive",
-    finished: "outline",
+    draft: 'secondary',
+    scheduled: 'default',
+    ongoing: 'destructive',
+    finished: 'outline',
 };
 
 export default function TeacherExamShow({ exam }: { exam: Exam }) {
@@ -123,13 +123,13 @@ export default function TeacherExamShow({ exam }: { exam: Exam }) {
                                 asChild
                                 variant={
                                     exam.has_pending_essays
-                                        ? "default"
-                                        : "outline"
+                                        ? 'default'
+                                        : 'outline'
                                 }
                             >
                                 <Link href={examGrading.url(exam.id)}>
                                     Nilai Esai
-                                    {exam.has_pending_essays && " •"}
+                                    {exam.has_pending_essays && ' •'}
                                 </Link>
                             </Button>
                         )}
@@ -141,12 +141,12 @@ export default function TeacherExamShow({ exam }: { exam: Exam }) {
                             </Link>
                         </Button>
                         <Button
-                            variant={exam.is_published ? "outline" : "default"}
+                            variant={exam.is_published ? 'outline' : 'default'}
                             onClick={togglePublish}
                         >
                             {exam.is_published
-                                ? "Tarik ke Draft"
-                                : "Publikasikan"}
+                                ? 'Tarik ke Draft'
+                                : 'Publikasikan'}
                         </Button>
                         <Button
                             variant="destructive"
@@ -168,13 +168,13 @@ export default function TeacherExamShow({ exam }: { exam: Exam }) {
                             <p>
                                 <span className="text-muted-foreground">
                                     Mulai:
-                                </span>{" "}
+                                </span>{' '}
                                 {exam.started_at_label}
                             </p>
                             <p>
                                 <span className="text-muted-foreground">
                                     Durasi:
-                                </span>{" "}
+                                </span>{' '}
                                 {exam.duration_minutes} menit
                             </p>
                             {exam.description && (
@@ -255,8 +255,8 @@ export default function TeacherExamShow({ exam }: { exam: Exam }) {
 
 TeacherExamShow.layout = {
     breadcrumbs: [
-        { title: "Dashboard Guru", href: teacherDashboard() },
-        { title: "Ujian", href: examsIndex() },
-        { title: "Detail", href: window.location.href },
+        { title: 'Dashboard Guru', href: teacherDashboard() },
+        { title: 'Ujian', href: examsIndex() },
+        { title: 'Detail', href: window.location.href },
     ],
 };

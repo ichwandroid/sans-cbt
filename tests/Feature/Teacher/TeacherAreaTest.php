@@ -232,3 +232,100 @@ test('exam status follows the server clock', function () {
     expect($ongoing->status)->toBe('ongoing');
     expect($finished->status)->toBe('finished');
 });
+
+test('guru can view their own bank detail page but not another teacher bank', function () {
+    [$user, $teacher] = guruWithProfile();
+    $subject = subjectForExams();
+    $ownBank = bankForTeacher($teacher, $subject);
+    questionInBank($ownBank);
+
+    $this->actingAs($user)
+        ->get(route('teacher.question-banks.show', $ownBank))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('teacher/questions/bank')
+            ->where('bank.id', $ownBank->id)
+            ->where('bank.questions_count', 1)
+            ->where('bank.questions.0.content', 'Soal contoh?')
+            ->has('subjects')
+            ->has('classes'));
+
+    $otherUser = User::factory()->guru()->create();
+    $otherTeacher = Teacher::query()->create(['user_id' => $otherUser->id, 'full_name' => 'Bu Citra']);
+    $otherBank = bankForTeacher($otherTeacher, $subject);
+
+    $this->actingAs($user)
+        ->get(route('teacher.question-banks.show', $otherBank))
+        ->assertForbidden();
+});
+
+test('guru can update an exam keeping the same questions without duplicating pivot rows', function () {
+    [$user, $teacher] = guruWithProfile();
+    $subject = subjectForExams();
+    $bank = bankForTeacher($teacher, $subject);
+    $questions = [
+        questionInBank($bank, 'Soal satu?'),
+        questionInBank($bank, 'Soal dua?'),
+    ];
+    $class = SchoolClass::query()->create(['name' => '6A', 'academic_year' => '2026/2027']);
+
+    $exam = Exam::query()->create([
+        'teacher_id' => $teacher->id,
+        'subject_id' => $subject->id,
+        'school_class_id' => $class->id,
+        'name' => 'Ujian Awal',
+        'started_at' => Carbon::tomorrow(),
+        'duration_minutes' => 60,
+    ]);
+    $exam->questions()->sync([$questions[0]->id => ['sort_order' => 1], $questions[1]->id => ['sort_order' => 2]]);
+
+    $this->actingAs($user)
+        ->put(route('teacher.exams.update', $exam), [
+            'name' => 'Ujian Revisi',
+            'subject_id' => $subject->id,
+            'school_class_id' => $class->id,
+            'started_at' => Carbon::tomorrow()->format('Y-m-d H:i:s'),
+            'duration_minutes' => 60,
+            'question_ids' => [$questions[0]->id, $questions[1]->id],
+        ])
+        ->assertRedirect(route('teacher.exams.show', $exam));
+
+    expect($exam->fresh()->name)->toBe('Ujian Revisi');
+    expect($exam->questions()->count())->toBe(2);
+    expect($exam->questions()->pluck('questions.id')->map(fn ($id) => (int) $id)->all())->toBe([$questions[0]->id, $questions[1]->id]);
+    expect($exam->questions()->first()->pivot->sort_order)->toBe(1);
+});
+
+test('guru updating an exam can add and remove questions', function () {
+    [$user, $teacher] = guruWithProfile();
+    $subject = subjectForExams();
+    $bank = bankForTeacher($teacher, $subject);
+    $first = questionInBank($bank, 'Soal awal?');
+    $second = questionInBank($bank, 'Soal pengganti?');
+    $third = questionInBank($bank, 'Soal tambahan?');
+    $class = SchoolClass::query()->create(['name' => '6B', 'academic_year' => '2026/2027']);
+
+    $exam = Exam::query()->create([
+        'teacher_id' => $teacher->id,
+        'subject_id' => $subject->id,
+        'school_class_id' => $class->id,
+        'name' => 'Ujian Seleksi',
+        'started_at' => Carbon::tomorrow(),
+        'duration_minutes' => 60,
+    ]);
+    $exam->questions()->sync([$first->id => ['sort_order' => 1], $second->id => ['sort_order' => 2]]);
+
+    $this->actingAs($user)
+        ->put(route('teacher.exams.update', $exam), [
+            'name' => 'Ujian Seleksi',
+            'subject_id' => $subject->id,
+            'school_class_id' => $class->id,
+            'started_at' => Carbon::tomorrow()->format('Y-m-d H:i:s'),
+            'duration_minutes' => 60,
+            'question_ids' => [$second->id, $third->id],
+        ])
+        ->assertRedirect();
+
+    expect($exam->questions()->pluck('questions.id')->map(fn ($id) => (int) $id)->sort()->values()->all())->toBe([$second->id, $third->id]);
+    expect($exam->questions()->count())->toBe(2);
+});

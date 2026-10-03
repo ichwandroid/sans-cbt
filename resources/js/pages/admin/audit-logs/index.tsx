@@ -1,11 +1,11 @@
-import { Head, router } from "@inertiajs/react";
-import { useState } from "react";
-import { AdminPagination } from "@/components/admin/admin-pagination";
-import Heading from "@/components/heading";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { dashboard } from "@/routes/admin";
-import { index as auditLogsIndex } from "@/routes/admin/audit-logs";
+import { Head, router } from '@inertiajs/react';
+import { useState } from 'react';
+import { AdminPagination } from '@/components/admin/admin-pagination';
+import Heading from '@/components/heading';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { dashboard } from '@/routes/admin';
+import { index as auditLogsIndex } from '@/routes/admin/audit-logs';
 
 type Paginator<T> = {
     data: T[];
@@ -29,12 +29,12 @@ type LogRow = {
 
 const LEVEL_VARIANT: Record<
     string,
-    "secondary" | "default" | "destructive" | "outline"
+    'secondary' | 'default' | 'destructive' | 'outline'
 > = {
-    info: "secondary",
-    warning: "default",
-    violation: "destructive",
-    critical: "destructive",
+    info: 'secondary',
+    warning: 'default',
+    violation: 'destructive',
+    critical: 'destructive',
 };
 
 export default function AdminAuditLogsIndex({
@@ -78,7 +78,7 @@ export default function AdminAuditLogsIndex({
                                     setLevel(e.target.value);
                                     applyFilter(e.target.value, event);
                                 }}
-                                className="border-input h-9 rounded-md border bg-background px-3 text-sm"
+                                className="h-9 rounded-md border border-input bg-background px-3 text-sm"
                             >
                                 <option value="">Semua level</option>
                                 {levels.map((value) => (
@@ -94,7 +94,7 @@ export default function AdminAuditLogsIndex({
                                     setEvent(e.target.value);
                                     applyFilter(level, e.target.value);
                                 }}
-                                className="border-input h-9 rounded-md border bg-background px-3 text-sm"
+                                className="h-9 rounded-md border border-input bg-background px-3 text-sm"
                             >
                                 <option value="">Semua event</option>
                                 {eventTypes.map((value) => (
@@ -134,7 +134,7 @@ export default function AdminAuditLogsIndex({
                                 {logs.data.map((log) => (
                                     <tr
                                         key={log.id}
-                                        className="border-b last:border-0 align-top"
+                                        className="border-b align-top last:border-0"
                                     >
                                         <td className="py-2.5 pr-4 whitespace-nowrap text-muted-foreground">
                                             {log.created_at_label}
@@ -143,7 +143,7 @@ export default function AdminAuditLogsIndex({
                                             <Badge
                                                 variant={
                                                     LEVEL_VARIANT[log.level] ??
-                                                    "secondary"
+                                                    'secondary'
                                                 }
                                             >
                                                 {log.level.toUpperCase()}
@@ -153,18 +153,18 @@ export default function AdminAuditLogsIndex({
                                             {log.event_type}
                                         </td>
                                         <td className="py-2.5 pr-4">
-                                            {log.user_name ?? "—"}
+                                            {log.user_name ?? '—'}
                                         </td>
                                         <td className="py-2.5 pr-4">
-                                            {log.exam_name ?? "—"}
+                                            {log.exam_name ?? '—'}
                                         </td>
                                         <td className="py-2.5 pr-4 text-xs text-muted-foreground">
                                             {log.metadata
                                                 ? JSON.stringify(log.metadata)
-                                                : "—"}
+                                                : '—'}
                                         </td>
                                         <td className="py-2.5 text-xs text-muted-foreground">
-                                            {log.ip_address ?? "—"}
+                                            {log.ip_address ?? '—'}
                                         </td>
                                     </tr>
                                 ))}
@@ -204,7 +204,7 @@ export default function AdminAuditLogsIndex({
 
 AdminAuditLogsIndex.layout = {
     breadcrumbs: [
-        { title: "Dashboard Admin", href: dashboard() },
-        { title: "Audit Log", href: auditLogsIndex() },
+        { title: 'Dashboard Admin', href: dashboard() },
+        { title: 'Audit Log', href: auditLogsIndex() },
     ],
 };

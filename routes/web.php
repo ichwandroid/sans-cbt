@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\AuditLogController as AdminAuditLogController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ExamMonitorController as AdminExamMonitorController;
 use App\Http\Controllers\Admin\ParentProfileController as AdminParentProfileController;
 use App\Http\Controllers\Admin\QuestionController as AdminQuestionController;
@@ -11,11 +11,11 @@ use App\Http\Controllers\Admin\StudentController as AdminStudentController;
 use App\Http\Controllers\Admin\SubjectController as AdminSubjectController;
 use App\Http\Controllers\Admin\TeacherController as AdminTeacherController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Student\ExamController as StudentExamController;
 use App\Http\Controllers\Teacher\DashboardController as TeacherDashboardController;
 use App\Http\Controllers\Teacher\ExamController as TeacherExamController;
 use App\Http\Controllers\Teacher\QuestionController as TeacherQuestionController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\Student\ExamController as StudentExamController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
@@ -53,6 +53,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])
         Route::resource('teachers', AdminTeacherController::class)->except('show');
         Route::resource('parents', AdminParentProfileController::class)->except('show')->parameters(['parents' => 'parent']);
         Route::resource('questions', AdminQuestionController::class)->except(['create', 'edit']);
+        Route::get('question-banks/{questionBank}', [AdminQuestionController::class, 'showBank'])->name('question-banks.show');
         Route::post('question-banks', [AdminQuestionController::class, 'storeBank'])->name('question-banks.store');
         Route::put('question-banks/{questionBank}', [AdminQuestionController::class, 'updateBank'])->name('question-banks.update');
         Route::delete('question-banks/{questionBank}', [AdminQuestionController::class, 'destroyBank'])->name('question-banks.destroy');
@@ -84,12 +85,12 @@ Route::middleware(['auth', 'verified', 'role:guru'])
         Route::get('questions/{question}', [TeacherQuestionController::class, 'show'])->name('questions.show');
         Route::put('questions/{question}', [TeacherQuestionController::class, 'update'])->name('questions.update');
         Route::delete('questions/{question}', [TeacherQuestionController::class, 'destroy'])->name('questions.destroy');
+        Route::get('question-banks/{questionBank}', [TeacherQuestionController::class, 'showBank'])->name('question-banks.show');
         Route::post('question-banks', [TeacherQuestionController::class, 'storeBank'])->name('question-banks.store');
         Route::put('question-banks/{questionBank}', [TeacherQuestionController::class, 'updateBank'])->name('question-banks.update');
         Route::delete('question-banks/{questionBank}', [TeacherQuestionController::class, 'destroyBank'])->name('question-banks.destroy');
 
         Route::get('exams', [TeacherExamController::class, 'index'])->name('exams.index');
-        Route::get('exams/create', [TeacherExamController::class, 'create'])->name('exams.create');
         Route::post('exams', [TeacherExamController::class, 'store'])->name('exams.store');
         Route::get('exams/{exam}/edit', [TeacherExamController::class, 'edit'])->name('exams.edit');
         Route::get('exams/{exam}/grading', [TeacherExamController::class, 'grading'])->name('exams.grading');

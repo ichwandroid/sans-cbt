@@ -23,9 +23,7 @@ use Inertia\Response;
  */
 class ExamController extends Controller
 {
-    public function __construct(private readonly ExamRandomizer $randomizer, private readonly ExamScorer $scorer, private readonly ExamAuditLogger $audit)
-    {
-    }
+    public function __construct(private readonly ExamRandomizer $randomizer, private readonly ExamScorer $scorer, private readonly ExamAuditLogger $audit) {}
 
     /**
      * List the exams available to the student's class.
@@ -155,6 +153,7 @@ class ExamController extends Controller
                 'server_time' => now()->getTimestampMs(),
                 'deadline' => $session->deadline()->getTimestampMs(),
                 'started_at_label' => $session->started_at->translatedFormat('d M Y H:i'),
+                'violation_flag_threshold' => ExamAuditLogger::VIOLATION_FLAG_THRESHOLD,
             ],
             'questions' => $questions,
             'answers' => $answers,
@@ -215,7 +214,11 @@ class ExamController extends Controller
             ? $this->audit->securityEvent($session, $validated['type'], $validated['metadata'] ?? [])
             : null;
 
-        return response()->json(['ok' => true, 'recorded' => $logged !== null]);
+        return response()->json([
+            'ok' => true,
+            'recorded' => $logged !== null,
+            'violation_count' => $this->audit->violationCount($session),
+        ]);
     }
 
     /**

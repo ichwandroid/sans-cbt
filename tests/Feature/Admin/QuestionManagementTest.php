@@ -316,3 +316,32 @@ test('admin can update and delete a question bank', function () {
 
     expect(QuestionBank::query()->find($bank->id))->toBeNull();
 });
+
+test('admin can view a question bank detail page with its questions', function () {
+    $admin = User::factory()->admin()->create();
+    $bank = createQuestionBank();
+    $question = Question::query()->create(['question_bank_id' => $bank->id, 'type' => 'essay', 'content' => 'Jelaskan proses fotosintesis.', 'difficulty' => 'Sedang', 'weight' => 10]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.question-banks.show', $bank))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('admin/questions/bank')
+            ->where('bank.id', $bank->id)
+            ->where('bank.questions_count', 1)
+            ->where('bank.questions.0.id', $question->id)
+            ->has('subjects')
+            ->has('classes')
+            ->has('teachers'));
+});
+
+test('admin is redirected to the bank detail page after creating a bank', function () {
+    $admin = User::factory()->admin()->create();
+    $subject = Subject::query()->create(['code' => 'BIO', 'name' => 'Biologi', 'is_active' => true]);
+
+    $response = $this->actingAs($admin)
+        ->post(route('admin.question-banks.store'), ['name' => 'Bank Biologi', 'subject_id' => $subject->id]);
+
+    $bank = QuestionBank::query()->where('name', 'Bank Biologi')->firstOrFail();
+    $response->assertRedirect(route('admin.question-banks.show', $bank));
+});

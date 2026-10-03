@@ -1,17 +1,17 @@
-import { Form, Head, Link } from "@inertiajs/react";
-import TeacherExamController from "@/actions/App/Http/Controllers/Teacher/ExamController";
-import Heading from "@/components/heading";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { dashboard as teacherDashboard } from "@/routes/teacher";
+import { Form, Head, Link } from '@inertiajs/react';
+import TeacherExamController from '@/actions/App/Http/Controllers/Teacher/ExamController';
+import Heading from '@/components/heading';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { dashboard as teacherDashboard } from '@/routes/teacher';
 import {
     grading as examGrading,
     index as examsIndex,
     show as examShow,
-} from "@/routes/teacher/exams";
+} from '@/routes/teacher/exams';
 
 type EssayAnswer = {
     question_id: number;
@@ -34,9 +34,9 @@ type GradingSession = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
-    ongoing: "Sedang Ujian",
-    submitted: "Dikumpulkan",
-    expired: "Waktu Habis",
+    ongoing: 'Sedang Ujian',
+    submitted: 'Dikumpulkan',
+    expired: 'Waktu Habis',
 };
 
 export default function TeacherExamGrading({
@@ -92,7 +92,7 @@ export default function TeacherExamGrading({
                                             {session.student_name}
                                         </h2>
                                         <p className="text-xs text-muted-foreground">
-                                            Dikumpulkan{" "}
+                                            Dikumpulkan{' '}
                                             {session.submitted_at_label}
                                         </p>
                                     </div>
@@ -107,8 +107,8 @@ export default function TeacherExamGrading({
                                             {session.score !== null
                                                 ? ` · nilai ${session.score}`
                                                 : session.pending_essays > 0
-                                                  ? " · menunggu esai"
-                                                  : ""}
+                                                  ? ' · menunggu esai'
+                                                  : ''}
                                         </Badge>
                                     </div>
                                 </div>
@@ -139,8 +139,8 @@ export default function TeacherExamGrading({
                                                         >
                                                             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                                                                 <p className="text-sm font-medium">
-                                                                    Soal{" "}
-                                                                    {index + 1}:{" "}
+                                                                    Soal{' '}
+                                                                    {index + 1}:{' '}
                                                                     {
                                                                         essay.content
                                                                     }
@@ -157,17 +157,17 @@ export default function TeacherExamGrading({
                                                                         </Badge>
                                                                     )}
                                                                     <span>
-                                                                        Maks{" "}
+                                                                        Maks{' '}
                                                                         {
                                                                             essay.weight
-                                                                        }{" "}
+                                                                        }{' '}
                                                                         poin
                                                                     </span>
                                                                 </div>
                                                             </div>
                                                             <div className="mb-2 max-h-40 overflow-y-auto rounded-md bg-muted p-3 text-sm whitespace-pre-wrap">
                                                                 {essay.student_text || (
-                                                                    <span className="italic text-muted-foreground">
+                                                                    <span className="text-muted-foreground italic">
                                                                         (tidak
                                                                         menjawab)
                                                                     </span>
@@ -217,8 +217,8 @@ export default function TeacherExamGrading({
 
 TeacherExamGrading.layout = {
     breadcrumbs: [
-        { title: "Dashboard Guru", href: teacherDashboard() },
-        { title: "Ujian", href: examsIndex() },
-        { title: "Nilai Esai", href: window.location.href },
+        { title: 'Dashboard Guru', href: teacherDashboard() },
+        { title: 'Ujian', href: examsIndex() },
+        { title: 'Nilai Esai', href: window.location.href },
     ],
 };

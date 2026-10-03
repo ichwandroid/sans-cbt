@@ -1,8 +1,8 @@
-import { Head } from "@inertiajs/react";
-import TeacherExamController from "@/actions/App/Http/Controllers/Teacher/ExamController";
-import { ExamForm, type Option, type BankOption } from "./form";
-import { dashboard as teacherDashboard } from "@/routes/teacher";
-import { index as examsIndex } from "@/routes/teacher/exams";
+import { Head } from '@inertiajs/react';
+import TeacherExamController from '@/actions/App/Http/Controllers/Teacher/ExamController';
+import { ExamForm, type Option, type BankOption } from './form';
+import { dashboard as teacherDashboard } from '@/routes/teacher';
+import { index as examsIndex } from '@/routes/teacher/exams';
 
 export type ExamValues = {
     id: number;
@@ -50,8 +50,8 @@ export default function TeacherExamEdit({
 
 TeacherExamEdit.layout = {
     breadcrumbs: [
-        { title: "Dashboard Guru", href: teacherDashboard() },
-        { title: "Ujian", href: examsIndex() },
-        { title: "Edit", href: window.location.href },
+        { title: 'Dashboard Guru', href: teacherDashboard() },
+        { title: 'Ujian', href: examsIndex() },
+        { title: 'Edit', href: window.location.href },
     ],
 };

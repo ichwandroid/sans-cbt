@@ -1,10 +1,10 @@
-import { Head, Link } from "@inertiajs/react";
-import Heading from "@/components/heading";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { QUESTION_TYPE_LABELS } from "@/components/admin/question-form-fields";
-import { index as studentExamsIndex } from "@/routes/student/exams";
+import { Head, Link } from '@inertiajs/react';
+import Heading from '@/components/heading';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { QUESTION_TYPE_LABELS } from '@/components/admin/question-form-fields';
+import { index as studentExamsIndex } from '@/routes/student/exams';
 
 type Detail = {
     question_id: number;
@@ -61,7 +61,7 @@ export default function StudentExamResult({
                     <Card>
                         <CardContent className="space-y-2 pt-6">
                             <p className="text-sm font-medium">
-                                Ujian berhasil dikumpulkan pada{" "}
+                                Ujian berhasil dikumpulkan pada{' '}
                                 {session.submitted_at_label}.
                             </p>
                             <p className="text-sm text-muted-foreground">
@@ -79,7 +79,7 @@ export default function StudentExamResult({
                                     <p className="text-5xl font-bold">
                                         {result.score !== null
                                             ? result.score
-                                            : "—"}
+                                            : '—'}
                                     </p>
                                     <p className="text-xs text-muted-foreground">
                                         Nilai (0–100)
@@ -87,11 +87,11 @@ export default function StudentExamResult({
                                 </div>
                                 <div className="space-y-1 text-sm">
                                     <p>
-                                        Skor: {result.earned_score} dari{" "}
+                                        Skor: {result.earned_score} dari{' '}
                                         {result.max_score}
                                     </p>
                                     <p>
-                                        Benar: {result.correct_count} dari{" "}
+                                        Benar: {result.correct_count} dari{' '}
                                         {result.question_count} soal
                                     </p>
                                     {result.has_essay_pending && (
@@ -121,7 +121,7 @@ export default function StudentExamResult({
                                         >
                                             <div className="flex flex-wrap items-center justify-between gap-2">
                                                 <p className="min-w-0 flex-1 text-sm">
-                                                    {index + 1}.{" "}
+                                                    {index + 1}.{' '}
                                                     {detail.content}
                                                 </p>
                                                 {detail.is_correct === null ? (
@@ -141,7 +141,7 @@ export default function StudentExamResult({
                                             <p className="text-xs text-muted-foreground">
                                                 {QUESTION_TYPE_LABELS[
                                                     detail.type as keyof typeof QUESTION_TYPE_LABELS
-                                                ] ?? detail.type}{" "}
+                                                ] ?? detail.type}{' '}
                                                 · skor {detail.earned}/
                                                 {detail.max}
                                             </p>

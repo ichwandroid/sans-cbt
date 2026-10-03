@@ -1,10 +1,10 @@
-import { Head, router } from "@inertiajs/react";
-import { useEffect } from "react";
-import Heading from "@/components/heading";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { dashboard } from "@/routes/admin";
-import { index as examMonitoringIndex } from "@/routes/admin/exam-monitoring";
+import { Head, router } from '@inertiajs/react';
+import { useEffect } from 'react';
+import Heading from '@/components/heading';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { dashboard } from '@/routes/admin';
+import { index as examMonitoringIndex } from '@/routes/admin/exam-monitoring';
 
 type OngoingSession = {
     id: number;
@@ -15,6 +15,7 @@ type OngoingSession = {
     started_at_label: string;
     remaining_minutes: number;
     violations_count: number;
+    flagged: boolean;
 };
 type ViolationRow = {
     id: number;
@@ -25,9 +26,9 @@ type ViolationRow = {
     created_at_label: string;
 };
 
-const LEVEL_VARIANT: Record<string, "secondary" | "destructive"> = {
-    violation: "destructive",
-    critical: "destructive",
+const LEVEL_VARIANT: Record<string, 'secondary' | 'destructive'> = {
+    violation: 'destructive',
+    critical: 'destructive',
 };
 
 export default function AdminExamMonitoringIndex({
@@ -42,7 +43,7 @@ export default function AdminExamMonitoringIndex({
     // Keep the live view fresh without websockets.
     useEffect(() => {
         const timer = setInterval(() => {
-            router.reload({ only: ["ongoing", "recentViolations", "stats"] });
+            router.reload({ only: ['ongoing', 'recentViolations', 'stats'] });
         }, 5000);
         return () => clearInterval(timer);
     }, []);
@@ -131,8 +132,15 @@ export default function AdminExamMonitoringIndex({
                                             {session.remaining_minutes} mnt
                                         </td>
                                         <td className="py-3">
-                                            {session.violations_count > 0 ? (
-                                                <Badge variant="destructive">
+                                            {session.flagged ? (
+                                                <Badge
+                                                    variant="destructive"
+                                                    className="gap-1"
+                                                >
+                                                    ⚑ {session.violations_count}
+                                                </Badge>
+                                            ) : session.violations_count > 0 ? (
+                                                <Badge variant="secondary">
                                                     {session.violations_count}
                                                 </Badge>
                                             ) : (
@@ -177,14 +185,14 @@ export default function AdminExamMonitoringIndex({
                                             variant={
                                                 LEVEL_VARIANT[
                                                     violation.level
-                                                ] ?? "destructive"
+                                                ] ?? 'destructive'
                                             }
                                         >
                                             {violation.event_type}
-                                        </Badge>{" "}
+                                        </Badge>{' '}
                                         <span className="text-muted-foreground">
-                                            {violation.user_name ?? "—"} ·{" "}
-                                            {violation.exam_name ?? "—"}
+                                            {violation.user_name ?? '—'} ·{' '}
+                                            {violation.exam_name ?? '—'}
                                         </span>
                                     </div>
                                     <span className="text-xs text-muted-foreground">
@@ -207,7 +215,7 @@ export default function AdminExamMonitoringIndex({
 
 AdminExamMonitoringIndex.layout = {
     breadcrumbs: [
-        { title: "Dashboard Admin", href: dashboard() },
-        { title: "Monitoring Ujian", href: examMonitoringIndex() },
+        { title: 'Dashboard Admin', href: dashboard() },
+        { title: 'Monitoring Ujian', href: examMonitoringIndex() },
     ],
 };

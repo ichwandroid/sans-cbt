@@ -1,17 +1,17 @@
-import { Head, Link } from "@inertiajs/react";
+import { Head, Link } from '@inertiajs/react';
 import {
     BookOpen,
     ClipboardList,
     GraduationCap,
     ListChecks,
-} from "lucide-react";
-import Heading from "@/components/heading";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { dashboard as teacherDashboard } from "@/routes/teacher";
-import { create as examCreate, show as examShow } from "@/routes/teacher/exams";
-import { index as questionsIndex } from "@/routes/teacher/questions";
+} from 'lucide-react';
+import Heading from '@/components/heading';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { dashboard as teacherDashboard } from '@/routes/teacher';
+import { index as examsIndex, show as examShow } from '@/routes/teacher/exams';
+import { index as questionsIndex } from '@/routes/teacher/questions';
 
 type UpcomingExam = {
     id: number;
@@ -72,7 +72,7 @@ export default function TeacherDashboard({
                             Ujian Terjadwal
                         </CardTitle>
                         <Button asChild size="sm" variant="outline">
-                            <Link href={examCreate()}>Buat Ujian</Link>
+                            <Link href={examsIndex()}>Buat Ujian</Link>
                         </Button>
                     </CardHeader>
                     <CardContent>
@@ -89,8 +89,8 @@ export default function TeacherDashboard({
                                                 {exam.name}
                                             </p>
                                             <p className="text-xs text-muted-foreground">
-                                                {exam.subject} · {exam.class} ·{" "}
-                                                {exam.started_at_label} ·{" "}
+                                                {exam.subject} · {exam.class} ·{' '}
+                                                {exam.started_at_label} ·{' '}
                                                 {exam.duration_minutes} menit
                                             </p>
                                         </div>
@@ -118,13 +118,13 @@ export default function TeacherDashboard({
                     <CardContent>
                         <ol className="list-decimal space-y-1.5 pl-5 text-sm text-muted-foreground">
                             <li>
-                                Susun soal di{" "}
+                                Susun soal di{' '}
                                 <Link
                                     className="font-medium text-foreground underline"
                                     href={questionsIndex()}
                                 >
                                     Bank Soal
-                                </Link>{" "}
+                                </Link>{' '}
                                 — pilihan ganda, benar/salah, atau esai.
                             </li>
                             <li>
@@ -144,5 +144,5 @@ export default function TeacherDashboard({
 }
 
 TeacherDashboard.layout = {
-    breadcrumbs: [{ title: "Dashboard Guru", href: teacherDashboard() }],
+    breadcrumbs: [{ title: 'Dashboard Guru', href: teacherDashboard() }],
 };
