@@ -30,6 +30,16 @@ class Question extends Model
     }
 
     /**
+     * Left-right pairs for the matching question type (drag & drop on the student client).
+     *
+     * @return HasMany<QuestionPair, $this>
+     */
+    public function pairs(): HasMany
+    {
+        return $this->hasMany(QuestionPair::class)->orderBy('sort_order');
+    }
+
+    /**
      * Authenticated URL for the attached image; media lives outside the public disk.
      */
     protected function imageUrl(): Attribute

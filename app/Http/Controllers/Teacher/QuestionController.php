@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\QuestionBankRequest;
@@ -12,9 +12,14 @@ use App\Models\Subject;
 use App\Models\Teacher;
 use App\Services\QuestionWriter;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Question bank area for teachers: every bank and question is scoped to the
+ * teacher profile linked to the authenticated user.
+ */
 class QuestionController extends Controller
 {
     public function __construct(private readonly QuestionWriter $questionWriter)
@@ -22,13 +27,16 @@ class QuestionController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
+     * Display the teacher's question banks.
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        return Inertia::render('admin/questions/index', [
+        $teacher = $this->profile($request);
+
+        return Inertia::render('teacher/questions/index', [
             'banks' => QuestionBank::query()
-                ->with(['subject:id,name', 'schoolClass:id,name', 'teacher:id,full_name', 'questions:id,question_bank_id,content,type,difficulty,weight'])
+                ->where('teacher_id', $teacher->id)
+                ->with(['subject:id,name', 'schoolClass:id,name', 'questions:id,question_bank_id,content,type,difficulty,weight'])
                 ->withCount('questions')
                 ->latest()
                 ->get()
@@ -36,15 +44,15 @@ class QuestionController extends Controller
                 ->all(),
             'subjects' => Subject::query()->where('is_active', true)->orderBy('name')->get(['id', 'name'])->map(fn (Subject $subject): array => ['value' => $subject->id, 'label' => $subject->name])->all(),
             'classes' => SchoolClass::query()->orderBy('name')->get(['id', 'name'])->map(fn (SchoolClass $class): array => ['value' => $class->id, 'label' => $class->name])->all(),
-            'teachers' => Teacher::query()->orderBy('full_name')->get(['id', 'full_name'])->map(fn (Teacher $teacher): array => ['value' => $teacher->id, 'label' => $teacher->full_name])->all(),
         ]);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created question in one of the teacher's banks.
      */
     public function store(QuestionRequest $request): RedirectResponse
     {
+        $this->assertBankOwnership($request);
         $this->questionWriter->create($request);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Soal berhasil ditambahkan.']);
@@ -54,7 +62,10 @@ class QuestionController extends Controller
 
     public function storeBank(QuestionBankRequest $request): RedirectResponse
     {
-        QuestionBank::query()->create($request->validated());
+        $teacher = $this->profile($request);
+
+        QuestionBank::query()->create([...$request->validated(), 'teacher_id' => $teacher->id]);
+
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Bank soal berhasil ditambahkan.']);
 
         return back();
@@ -62,57 +73,111 @@ class QuestionController extends Controller
 
     public function updateBank(QuestionBankRequest $request, QuestionBank $questionBank): RedirectResponse
     {
+        $this->authorizeBank($request, $questionBank);
+
         $questionBank->update($request->validated());
+
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Bank soal berhasil diperbarui.']);
+
         return back();
     }
 
-    public function destroyBank(QuestionBank $questionBank): RedirectResponse
+    public function destroyBank(Request $request, QuestionBank $questionBank): RedirectResponse
     {
+        $this->authorizeBank($request, $questionBank);
+
         $questionBank->delete();
+
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Bank soal berhasil dihapus.']);
+
         return back();
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified question.
      */
-    public function show(Question $question): Response
+    public function show(Request $request, Question $question): Response
     {
-        return Inertia::render('admin/questions/show', [
+        $this->authorizeQuestion($request, $question);
+
+        return Inertia::render('teacher/questions/show', [
             'question' => $question->load(['options', 'pairs', 'questionBank:id,name']),
         ]);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update the specified question.
      */
     public function update(QuestionRequest $request, Question $question): RedirectResponse
     {
+        $this->authorizeQuestion($request, $question);
         $this->questionWriter->update($question, $request);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Soal berhasil diperbarui.']);
+
         return back();
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified question.
      */
-    public function destroy(Question $question): RedirectResponse
+    public function destroy(Request $request, Question $question): RedirectResponse
     {
+        $this->authorizeQuestion($request, $question);
         $this->questionWriter->delete($question);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Soal berhasil dihapus.']);
 
-        return redirect()->route('admin.questions.index');
+        return redirect()->route('teacher.questions.index');
     }
 
     /**
-     * Shared shape for bank cards on both admin and teacher pages.
+     * Resolve the teacher profile of the authenticated user.
+     */
+    private function profile(Request $request): Teacher
+    {
+        $teacher = $request->user()->teacher;
+
+        abort_unless($teacher !== null, 404, 'Profil guru tidak ditemukan. Hubungi admin sekolah.');
+
+        return $teacher;
+    }
+
+    /**
+     * Ensure the target bank of a new question belongs to the teacher.
+     */
+    private function assertBankOwnership(QuestionRequest $request): void
+    {
+        $teacher = $this->profile($request);
+
+        $exists = QuestionBank::query()
+            ->where('id', $request->integer('question_bank_id'))
+            ->where('teacher_id', $teacher->id)
+            ->exists();
+
+        abort_unless($exists, 403, 'Bank soal bukan milik Anda.');
+    }
+
+    private function authorizeQuestion(Request $request, Question $question): void
+    {
+        $teacher = $this->profile($request);
+
+        abort_unless($question->questionBank !== null && $question->questionBank->teacher_id === $teacher->id, 403, 'Soal ini bukan milik Anda.');
+    }
+
+    private function authorizeBank(Request $request, QuestionBank $questionBank): void
+    {
+        $teacher = $this->profile($request);
+
+        abort_unless($questionBank->teacher_id === $teacher->id, 403, 'Bank soal bukan milik Anda.');
+    }
+
+    /**
+     * Shared shape for bank cards on the teacher page.
      *
      * @return array<string, mixed>
      */
-    protected function bankPayload(QuestionBank $bank): array
+    private function bankPayload(QuestionBank $bank): array
     {
         return [
             'id' => $bank->id,
@@ -120,9 +185,7 @@ class QuestionController extends Controller
             'subject' => $bank->subject->name,
             'subject_id' => $bank->subject_id,
             'school_class_id' => $bank->school_class_id,
-            'teacher_id' => $bank->teacher_id,
             'class' => $bank->schoolClass?->name,
-            'teacher' => $bank->teacher?->full_name,
             'material' => $bank->material,
             'questions_count' => $bank->questions_count,
             'questions' => $bank->questions->map(fn (Question $question): array => [

@@ -1,10 +1,16 @@
-import { useRef, useState } from 'react';
-import InputError from '@/components/input-error';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useRef, useState } from "react";
+import InputError from "@/components/input-error";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
-export type QuestionType = 'multiple_choice' | 'true_false' | 'essay';
+export type QuestionType =
+    | "multiple_choice"
+    | "multiple_answers"
+    | "true_false"
+    | "statement_true_false"
+    | "matching"
+    | "essay";
 
 type OptionValue = {
     content: string;
@@ -20,16 +26,20 @@ type QuestionValue = {
     image_path?: string | null;
     image_url?: string | null;
     options?: OptionValue[];
+    pairs?: { left_text: string; right_text: string }[];
 };
 
 export const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
-    multiple_choice: 'Pilihan Ganda',
-    true_false: 'Benar/Salah',
-    essay: 'Esai',
+    multiple_choice: "Pilihan Ganda",
+    multiple_answers: "Pilihan Ganda Kompleks",
+    true_false: "Benar/Salah",
+    statement_true_false: "Menjodohkan (Benar-Salah)",
+    matching: "Menjodohkan (Pasangan)",
+    essay: "Esai",
 };
 
-const DIFFICULTIES = ['Mudah', 'Sedang', 'Sulit'];
-const ACCEPT = 'image/png,image/jpeg,image/webp';
+const DIFFICULTIES = ["Mudah", "Sedang", "Sulit"];
+const ACCEPT = "image/png,image/jpeg,image/webp";
 
 /**
  * Shared question fields used by both the create dialog and the edit page.
@@ -45,7 +55,7 @@ export default function QuestionFormFields({
     idPrefix: string;
 }) {
     const [type, setType] = useState<QuestionType>(
-        question?.type ?? 'multiple_choice',
+        question?.type ?? "multiple_choice",
     );
     const [optionCount, setOptionCount] = useState(() =>
         question?.options?.length
@@ -58,25 +68,65 @@ export default function QuestionFormFields({
         );
         return index !== undefined && index > -1 ? index : 0;
     });
+    const [correctSet, setCorrectSet] = useState<Set<number>>(
+        () =>
+            new Set(
+                (question?.options ?? [])
+                    .map((option, index) => (option.is_correct ? index : -1))
+                    .filter((index) => index > -1),
+            ),
+    );
+    const [statementCount, setStatementCount] = useState(() =>
+        question?.type === "statement_true_false" && question.options?.length
+            ? question.options.length
+            : 4,
+    );
+    const [statementTrue, setStatementTrue] = useState<Record<number, boolean>>(
+        () =>
+            Object.fromEntries(
+                (question?.options ?? []).map((option, index): [number, boolean] => [
+                    index,
+                    option.is_correct === true,
+                ]),
+            ),
+    );
+    const [pairCount, setPairCount] = useState(() =>
+        question?.type === "matching" && question.pairs?.length
+            ? question.pairs.length
+            : 3,
+    );
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [imageRemoved, setImageRemoved] = useState(false);
     const imageInputRef = useRef<HTMLInputElement>(null);
     const id = (name: string) => `${idPrefix}-${name}`;
-    const isMultipleChoice = type === 'multiple_choice';
+    const usesOptions =
+        type === "multiple_choice" || type === "multiple_answers";
+
+    const toggleCorrect = (index: number) => {
+        setCorrectSet((current) => {
+            const next = new Set(current);
+            if (next.has(index)) {
+                next.delete(index);
+            } else {
+                next.add(index);
+            }
+            return next;
+        });
+    };
 
     return (
         <>
             <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">
-                    <Label htmlFor={id('type')}>Tipe soal</Label>
+                    <Label htmlFor={id("type")}>Tipe soal</Label>
                     <select
-                        id={id('type')}
+                        id={id("type")}
                         name="type"
                         value={type}
                         onChange={(event) =>
                             setType(event.target.value as QuestionType)
                         }
-                        className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+                        className="border-input h-9 rounded-md border bg-background px-2 text-sm"
                     >
                         {Object.entries(QUESTION_TYPE_LABELS).map(
                             ([value, label]) => (
@@ -89,12 +139,12 @@ export default function QuestionFormFields({
                     <InputError message={errors.type} />
                 </div>
                 <div className="grid gap-2">
-                    <Label htmlFor={id('difficulty')}>Tingkat kesulitan</Label>
+                    <Label htmlFor={id("difficulty")}>Tingkat kesulitan</Label>
                     <select
-                        id={id('difficulty')}
+                        id={id("difficulty")}
                         name="difficulty"
-                        defaultValue={question?.difficulty ?? 'Sedang'}
-                        className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+                        defaultValue={question?.difficulty ?? "Sedang"}
+                        className="border-input h-9 rounded-md border bg-background px-2 text-sm"
                     >
                         {DIFFICULTIES.map((difficulty) => (
                             <option key={difficulty} value={difficulty}>
@@ -107,21 +157,21 @@ export default function QuestionFormFields({
             </div>
 
             <div className="grid gap-2">
-                <Label htmlFor={id('content')}>Pertanyaan</Label>
+                <Label htmlFor={id("content")}>Pertanyaan</Label>
                 <textarea
-                    id={id('content')}
+                    id={id("content")}
                     name="content"
                     required
                     rows={4}
-                    defaultValue={question?.content ?? ''}
+                    defaultValue={question?.content ?? ""}
                     placeholder="Tulis pertanyaan..."
-                    className="w-full rounded-md border border-input bg-background p-2 text-sm"
+                    className="border-input w-full rounded-md border bg-background p-2 text-sm"
                 />
                 <InputError message={errors.content} />
             </div>
 
             <div className="grid gap-2">
-                <Label htmlFor={id('image')}>Gambar soal (opsional)</Label>
+                <Label htmlFor={id("image")}>Gambar soal (opsional)</Label>
                 {(imagePreview || (question?.image_url && !imageRemoved)) && (
                     <img
                         src={imagePreview ?? question?.image_url ?? undefined}
@@ -132,7 +182,7 @@ export default function QuestionFormFields({
                 <div className="flex flex-wrap items-center gap-3">
                     <Input
                         ref={imageInputRef}
-                        id={id('image')}
+                        id={id("image")}
                         name="image"
                         type="file"
                         accept={ACCEPT}
@@ -158,7 +208,7 @@ export default function QuestionFormFields({
                                     if (event.target.checked) {
                                         setImagePreview(null);
                                         if (imageInputRef.current)
-                                            imageInputRef.current.value = '';
+                                            imageInputRef.current.value = "";
                                     }
                                 }}
                             />
@@ -169,9 +219,13 @@ export default function QuestionFormFields({
                 <InputError message={errors.image} />
             </div>
 
-            {isMultipleChoice && (
+            {usesOptions && (
                 <div className="grid gap-2">
-                    <Label>Pilihan jawaban &amp; kunci</Label>
+                    <Label>
+                        {type === "multiple_answers"
+                            ? "Pilihan jawaban & kunci (boleh lebih dari satu)"
+                            : "Pilihan jawaban & kunci"}
+                    </Label>
                     {Array.from({ length: optionCount }, (_, index) => {
                         const letter = String.fromCharCode(65 + index);
                         const existing = question?.options?.[index];
@@ -180,13 +234,24 @@ export default function QuestionFormFields({
                                 key={index}
                                 className="flex items-start gap-2 rounded-md border p-2.5"
                             >
-                                <input
-                                    aria-label={`Jadikan pilihan ${letter} sebagai kunci jawaban`}
-                                    type="radio"
-                                    checked={correct === index}
-                                    onChange={() => setCorrect(index)}
-                                    className="mt-2.5"
-                                />
+                                {type === "multiple_answers" ? (
+                                    <input
+                                        aria-label={`Jadikan pilihan ${letter} sebagai kunci jawaban`}
+                                        type="checkbox"
+                                        checked={correctSet.has(index)}
+                                        onChange={() => toggleCorrect(index)}
+                                        className="mt-2.5"
+                                    />
+                                ) : (
+                                    <input
+                                        aria-label={`Jadikan pilihan ${letter} sebagai kunci jawaban`}
+                                        type="radio"
+                                        name={`${idPrefix}-correct-ui`}
+                                        checked={correct === index}
+                                        onChange={() => setCorrect(index)}
+                                        className="mt-2.5"
+                                    />
+                                )}
                                 <div className="min-w-0 flex-1 space-y-2">
                                     <div className="flex items-center gap-2">
                                         <span className="w-5 text-sm font-medium">
@@ -197,7 +262,7 @@ export default function QuestionFormFields({
                                             required
                                             placeholder={`Pilihan ${letter}`}
                                             defaultValue={
-                                                existing?.content ?? ''
+                                                existing?.content ?? ""
                                             }
                                         />
                                     </div>
@@ -215,11 +280,22 @@ export default function QuestionFormFields({
                             </div>
                         );
                     })}
-                    <input
-                        type="hidden"
-                        name="correct_option"
-                        value={correct}
-                    />
+                    {type === "multiple_answers" ? (
+                        [...correctSet].map((index) => (
+                            <input
+                                key={`correct-${index}`}
+                                type="hidden"
+                                name="correct_options[]"
+                                value={index}
+                            />
+                        ))
+                    ) : (
+                        <input
+                            type="hidden"
+                            name="correct_option"
+                            value={correct}
+                        />
+                    )}
                     <div className="flex gap-2">
                         <Button
                             type="button"
@@ -245,25 +321,39 @@ export default function QuestionFormFields({
                                 setCorrect((current) =>
                                     current >= next ? 0 : current,
                                 );
+                                setCorrectSet(
+                                    (current) =>
+                                        new Set(
+                                            [...current].filter(
+                                                (index) => index < next,
+                                            ),
+                                        ),
+                                );
                             }}
                         >
                             Kurangi Pilihan
                         </Button>
                     </div>
                     <InputError
-                        message={errors.options ?? errors.correct_option}
+                        message={
+                            errors.options ??
+                            errors.correct_option ??
+                            errors.correct_options ??
+                            errors["options.0.content"]
+                        }
                     />
                     <p className="text-xs text-muted-foreground">
-                        Minimal 4 pilihan, maksimal 5 (A&ndash;E). Klik bulatan
-                        di kiri untuk menandai kunci jawaban.
+                        {type === "multiple_answers"
+                            ? "Minimal 4 pilihan (A–E). Centang semua pilihan yang merupakan jawaban benar."
+                            : "Minimal 4 pilihan, maksimal 5 (A–E). Klik bulatan di kiri untuk menandai kunci jawaban."}
                     </p>
                 </div>
             )}
 
-            {type === 'true_false' && (
+            {type === "true_false" && (
                 <div className="grid gap-2">
                     <Label>Kunci jawaban</Label>
-                    {['Benar', 'Salah'].map((label, index) => (
+                    {["Benar", "Salah"].map((label, index) => (
                         <label
                             key={label}
                             className="flex items-center gap-2 text-sm"
@@ -289,7 +379,178 @@ export default function QuestionFormFields({
                 </div>
             )}
 
-            {type === 'essay' && (
+            {type === "statement_true_false" && (
+                <div className="grid gap-2">
+                    <Label>Pernyataan &amp; kunci (Benar/Salah)</Label>
+                    {Array.from({ length: statementCount }, (_, index) => (
+                        <div
+                            key={index}
+                            className="flex items-start gap-2 rounded-md border p-2.5"
+                        >
+                            <span className="w-5 pt-2 text-sm font-medium">
+                                {index + 1}.
+                            </span>
+                            <div className="min-w-0 flex-1 space-y-2">
+                                <Input
+                                    name={`statements[${index}][content]`}
+                                    required
+                                    placeholder={`Pernyataan ${index + 1}`}
+                                    defaultValue={
+                                        question?.options?.[index]?.content ??
+                                        ""
+                                    }
+                                />
+                                <div className="flex gap-4 text-sm">
+                                    {[true, false].map((isTrue) => (
+                                        <label
+                                            key={String(isTrue)}
+                                            className="flex items-center gap-1.5"
+                                        >
+                                            <input
+                                                type="radio"
+                                                name={`${idPrefix}-statement-${index}-ui`}
+                                                checked={
+                                                    (statementTrue[index] ??
+                                                        true) === isTrue
+                                                }
+                                                onChange={() =>
+                                                    setStatementTrue(
+                                                        (current) => ({
+                                                            ...current,
+                                                            [index]: isTrue,
+                                                        }),
+                                                    )
+                                                }
+                                            />
+                                            {isTrue
+                                                ? "Kunci: Benar"
+                                                : "Kunci: Salah"}
+                                        </label>
+                                    ))}
+                                </div>
+                                <input
+                                    type="hidden"
+                                    name={`statements[${index}][is_true]`}
+                                    value={
+                                        (statementTrue[index] ?? true)
+                                            ? "1"
+                                            : "0"
+                                    }
+                                />
+                                <InputError
+                                    message={
+                                        errors[`statements.${index}.content`] ??
+                                        errors[`options.${index}.content`]
+                                    }
+                                />
+                            </div>
+                        </div>
+                    ))}
+                    <div className="flex gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={statementCount >= 10}
+                            onClick={() =>
+                                setStatementCount((count) =>
+                                    Math.min(10, count + 1),
+                                )
+                            }
+                        >
+                            Tambah Pernyataan
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={statementCount <= 2}
+                            onClick={() =>
+                                setStatementCount((count) =>
+                                    Math.max(2, count - 1),
+                                )
+                            }
+                        >
+                            Kurangi Pernyataan
+                        </Button>
+                    </div>
+                    <InputError message={errors.options} />
+                    <p className="text-xs text-muted-foreground">
+                        Siswa menilai setiap pernyataan Benar atau Salah.
+                        Minimal 2, maksimal 10 pernyataan.
+                    </p>
+                </div>
+            )}
+
+            {type === "matching" && (
+                <div className="grid gap-2">
+                    <Label>Pasangan kiri &amp; kanan</Label>
+                    {Array.from({ length: pairCount }, (_, index) => (
+                        <div
+                            key={index}
+                            className="flex items-center gap-2 rounded-md border p-2.5"
+                        >
+                            <span className="w-5 text-sm font-medium">
+                                {index + 1}.
+                            </span>
+                            <div className="grid flex-1 gap-2 sm:grid-cols-2">
+                                <Input
+                                    name={`pairs[${index}][left_text]`}
+                                    required
+                                    placeholder={`Kiri ${index + 1} (yang dijodohkan)`}
+                                    defaultValue={
+                                        question?.pairs?.[index]?.left_text ??
+                                        ""
+                                    }
+                                />
+                                <Input
+                                    name={`pairs[${index}][right_text]`}
+                                    required
+                                    placeholder={`Kanan ${index + 1} (pasangannya)`}
+                                    defaultValue={
+                                        question?.pairs?.[index]?.right_text ??
+                                        ""
+                                    }
+                                />
+                            </div>
+                        </div>
+                    ))}
+                    <div className="flex gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={pairCount >= 8}
+                            onClick={() =>
+                                setPairCount((count) => Math.min(8, count + 1))
+                            }
+                        >
+                            Tambah Pasangan
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={pairCount <= 2}
+                            onClick={() =>
+                                setPairCount((count) => Math.max(2, count - 1))
+                            }
+                        >
+                            Kurangi Pasangan
+                        </Button>
+                    </div>
+                    <InputError
+                        message={errors.pairs ?? errors["pairs.0.left_text"]}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                        Siswa memasangkan item kiri dengan item kanan (drag
+                        &amp; drop di halaman ujian). Minimal 2, maksimal 8
+                        pasangan.
+                    </p>
+                </div>
+            )}
+
+            {type === "essay" && (
                 <p className="rounded-md bg-muted p-3 text-sm text-muted-foreground">
                     Soal esai tidak memiliki pilihan jawaban dan akan dinilai
                     manual oleh guru setelah ujian.
@@ -297,9 +558,9 @@ export default function QuestionFormFields({
             )}
 
             <div className="grid gap-2">
-                <Label htmlFor={id('weight')}>Bobot nilai</Label>
+                <Label htmlFor={id("weight")}>Bobot nilai</Label>
                 <Input
-                    id={id('weight')}
+                    id={id("weight")}
                     name="weight"
                     type="number"
                     min="1"
@@ -372,7 +633,7 @@ function OptionImageInput({
                             if (event.target.checked) {
                                 setPreview(null);
                                 if (inputRef.current)
-                                    inputRef.current.value = '';
+                                    inputRef.current.value = "";
                             }
                         }}
                     />

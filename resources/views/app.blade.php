@@ -36,6 +36,9 @@
 
         @fonts
 
+        {{-- Used by the CBT autosave fetch calls --}}
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+
         @viteReactRefresh
         @vite(['resources/css/app.css', 'resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
         <x-inertia::head>

@@ -22,6 +22,14 @@ class DashboardController extends Controller
             return to_route('admin.dashboard');
         }
 
+        if ($user instanceof User && $user->hasRole(Role::Guru)) {
+            return to_route('teacher.dashboard');
+        }
+
+        if ($user instanceof User && $user->hasRole(Role::Siswa)) {
+            return to_route('student.exams.index');
+        }
+
         return Inertia::render('dashboard');
     }
 }

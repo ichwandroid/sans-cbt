@@ -194,6 +194,112 @@ test('deleting a question removes its media files', function () {
     expect(Question::query()->find($question->id))->toBeNull();
 });
 
+test('admin can create a complex multiple choice question with several correct keys', function () {
+    $admin = User::factory()->admin()->create();
+    $bank = createQuestionBank();
+
+    $this->actingAs($admin)
+        ->post(route('admin.questions.store'), [
+            'question_bank_id' => $bank->id,
+            'type' => 'multiple_answers',
+            'content' => 'Pilih semua bilangan prima berikut!',
+            'weight' => 4,
+            'correct_options' => [0, 2],
+            'options' => [
+                ['content' => '2'],
+                ['content' => '4'],
+                ['content' => '7'],
+                ['content' => '9'],
+            ],
+        ])
+        ->assertRedirect();
+
+    $question = Question::query()->where('content', 'Pilih semua bilangan prima berikut!')->first();
+    expect($question->type)->toBe('multiple_answers');
+    expect($question->options()->where('is_correct', true)->pluck('label')->all())->toBe(['A', 'C']);
+    expect($question->options()->count())->toBe(4);
+});
+
+test('admin can create a statement true/false matching question', function () {
+    $admin = User::factory()->admin()->create();
+    $bank = createQuestionBank();
+
+    $this->actingAs($admin)
+        ->post(route('admin.questions.store'), [
+            'question_bank_id' => $bank->id,
+            'type' => 'statement_true_false',
+            'content' => 'Nilailah pernyataan berikut!',
+            'weight' => 3,
+            'statements' => [
+                ['content' => 'Semua bilangan genap habis dibagi 2.', 'is_true' => '1'],
+                ['content' => 'Nol adalah bilangan prima.', 'is_true' => '0'],
+                ['content' => 'Hasil 5 x 0 adalah 0.', 'is_true' => '1'],
+            ],
+        ])
+        ->assertRedirect();
+
+    $question = Question::query()->where('content', 'Nilailah pernyataan berikut!')->first();
+    expect($question->type)->toBe('statement_true_false');
+    $options = $question->options()->orderBy('id')->get();
+    expect($options->pluck('content')->all())->toBe(['Semua bilangan genap habis dibagi 2.', 'Nol adalah bilangan prima.', 'Hasil 5 x 0 adalah 0.']);
+    expect($options->pluck('is_correct')->all())->toBe([true, false, true]);
+});
+
+test('admin can create a drag & drop matching question with pairs', function () {
+    $admin = User::factory()->admin()->create();
+    $bank = createQuestionBank();
+
+    $this->actingAs($admin)
+        ->post(route('admin.questions.store'), [
+            'question_bank_id' => $bank->id,
+            'type' => 'matching',
+            'content' => 'Jodohkan hewan berikut dengan suaranya!',
+            'weight' => 5,
+            'pairs' => [
+                ['left_text' => 'Ayam', 'right_text' => 'Kukuruyuk'],
+                ['left_text' => 'Kucing', 'right_text' => 'Meong'],
+                ['left_text' => 'Sapi', 'right_text' => 'Moo'],
+            ],
+        ])
+        ->assertRedirect();
+
+    $question = Question::query()->where('content', 'Jodohkan hewan berikut dengan suaranya!')->first();
+    expect($question->type)->toBe('matching');
+    expect($question->options()->count())->toBe(0);
+    expect($question->pairs()->orderBy('sort_order')->pluck('left_text')->all())->toBe(['Ayam', 'Kucing', 'Sapi']);
+    expect($question->pairs()->orderBy('sort_order')->pluck('right_text')->all())->toBe(['Kukuruyuk', 'Meong', 'Moo']);
+});
+
+test('matching questions require at least two pairs', function () {
+    $admin = User::factory()->admin()->create();
+    $bank = createQuestionBank();
+
+    $this->actingAs($admin)
+        ->post(route('admin.questions.store'), [
+            'question_bank_id' => $bank->id,
+            'type' => 'matching',
+            'content' => 'Jodohkan!',
+            'weight' => 1,
+            'pairs' => [['left_text' => 'Satu', 'right_text' => 'One']],
+        ])
+        ->assertSessionHasErrors('pairs');
+});
+
+test('complex multiple choice requires at least one correct key', function () {
+    $admin = User::factory()->admin()->create();
+    $bank = createQuestionBank();
+
+    $this->actingAs($admin)
+        ->post(route('admin.questions.store'), [
+            'question_bank_id' => $bank->id,
+            'type' => 'multiple_answers',
+            'content' => 'Pilih jawaban benar!',
+            'weight' => 1,
+            'options' => [['content' => 'A'], ['content' => 'B'], ['content' => 'C'], ['content' => 'D']],
+        ])
+        ->assertSessionHasErrors('correct_options');
+});
+
 test('admin can update and delete a question bank', function () {
     $admin = User::factory()->admin()->create();
     $bank = createQuestionBank();
